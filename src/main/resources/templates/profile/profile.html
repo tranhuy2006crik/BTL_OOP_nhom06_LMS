@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Hồ sơ cá nhân - LMS</title>
+<main>
+    <div th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></div>
+
+    <div class="card">
+        <h1>Hồ sơ cá nhân</h1>
+        <p class="muted" th:text="${user.email}"></p>
+        <p>
+            <span class="badge" th:text="${user.status}">ACTIVE</span>
+            <span class="badge" th:if="${user.systemAdmin}">Quản trị hệ thống</span>
+        </p>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h2>Cập nhật thông tin</h2>
+            <form th:action="@{/profile}" th:object="${profileForm}" method="post">
+                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                </div>
+                <label for="fullName">Họ tên</label>
+                <input id="fullName" type="text" th:field="*{fullName}">
+                <div class="muted" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                <button class="btn" type="submit">Lưu hồ sơ</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Đổi mật khẩu</h2>
+            <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post">
+                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                </div>
+                <label for="currentPassword">Mật khẩu hiện tại</label>
+                <input id="currentPassword" type="password" th:field="*{currentPassword}">
+
+                <label for="newPassword">Mật khẩu mới</label>
+                <input id="newPassword" type="password" th:field="*{newPassword}">
+                <div class="muted" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+
+                <label for="confirmNewPassword">Nhập lại mật khẩu mới</label>
+                <input id="confirmNewPassword" type="password" th:field="*{confirmNewPassword}">
+                <button class="btn" type="submit">Đổi mật khẩu</button>
+            </form>
+        </div>
+    </div>
+</main>
+</html>

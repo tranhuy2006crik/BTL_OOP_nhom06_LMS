@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:replace="${title}">LMS</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" th:href="@{/home}">LMS PTIT</a>
+    <nav>
+        <a th:href="@{/home}">Trang chủ</a>
+        <a th:href="@{/profile}">Hồ sơ</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button class="linkish" type="submit">Đăng xuất</button>
+        </form>
+    </nav>
+</header>
+<main class="page" th:replace="${content}"></main>
+</body>
+</html>

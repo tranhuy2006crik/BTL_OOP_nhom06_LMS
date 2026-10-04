@@ -1,0 +1,148 @@
+:root {
+    --lms-navy: #0b4f8a;
+    --lms-navy-dark: #083a66;
+    --lms-bg: #eef3f8;
+    --lms-card: #ffffff;
+    --lms-text: #1c2b36;
+    --lms-muted: #5d6d7a;
+    --lms-danger: #b42318;
+    --lms-ok: #067647;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: var(--lms-bg);
+    color: var(--lms-text);
+}
+
+.topbar {
+    background: var(--lms-navy);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+}
+
+.brand {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: white;
+    text-decoration: none;
+}
+
+.topbar nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.topbar a,
+.topbar button.linkish {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.page {
+    max-width: 920px;
+    margin: 2rem auto;
+    padding: 0 1rem 3rem;
+}
+
+.card {
+    background: var(--lms-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(12, 40, 70, 0.08);
+    margin-bottom: 1.25rem;
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+.muted {
+    color: var(--lms-muted);
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #c9d6e2;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    background: var(--lms-navy);
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 0.65rem 1.1rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn:hover {
+    background: var(--lms-navy-dark);
+}
+
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-error {
+    background: #fde8e6;
+    color: var(--lms-danger);
+}
+
+.alert-ok {
+    background: #e7f6ee;
+    color: var(--lms-ok);
+}
+
+.auth-wrap {
+    max-width: 440px;
+    margin: 4rem auto;
+}
+
+.badge {
+    display: inline-block;
+    background: #dceaf7;
+    color: var(--lms-navy-dark);
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.85rem;
+    margin-right: 0.35rem;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 800px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}

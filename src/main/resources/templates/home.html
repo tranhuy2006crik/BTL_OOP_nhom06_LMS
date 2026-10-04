@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Trang chủ - LMS</title>
+<main>
+    <div class="card">
+        <h1>Xin chào, <span th:text="${user.fullName}">User</span></h1>
+        <p class="muted" th:text="${user.email}"></p>
+        <p>
+            <span class="badge" th:text="${user.status}">ACTIVE</span>
+            <span class="badge" th:if="${user.systemAdmin}">ADMIN</span>
+            <span class="badge" th:each="roleName : ${user.securityRoleNames()}" th:text="${roleName}"></span>
+        </p>
+        <p class="muted">
+            Tài khoản mới chưa thuộc khóa học nào cho đến khi được ghi danh.
+            Quyền trong khóa (giảng viên/học viên) được kiểm tra đa hình qua RoleAccess.
+        </p>
+        <p><a class="btn" th:href="@{/profile}">Mở hồ sơ cá nhân</a></p>
+    </div>
+</main>
+</html>
