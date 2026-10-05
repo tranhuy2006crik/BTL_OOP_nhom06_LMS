@@ -1,3 +1,5 @@
+spring.config.import=optional:file:.env[.properties]
+
 spring.application.name=lms-system
 
 spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/lms_db}

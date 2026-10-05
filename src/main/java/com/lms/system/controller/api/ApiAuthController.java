@@ -1,4 +1,4 @@
-package com.lms.system.controller;
+package com.lms.system.controller.api;
 
 import com.lms.system.dto.api.ApiCurrentUserResponse;
 import com.lms.system.dto.api.ApiLoginRequest;

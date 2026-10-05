@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Messages - PTIT Learn</title>
+<main class="page messages-page" aria-label="Messages">
+    <section class="messages-inbox">
+        <aside class="messages-sidebar" aria-label="Message folders">
+            <form class="messages-search" th:action="@{/messages}" method="get">
+                <input type="hidden" name="theme" th:value="${theme}">
+                <input type="hidden" name="view" th:value="${view}">
+                <label class="visually-hidden" for="message-search">Search messages and contacts</label>
+                <input id="message-search" type="search" name="query" th:value="${query}" placeholder="Search">
+                <button type="submit" aria-label="Search">⌕</button>
+                <button class="messages-settings" type="button" aria-label="Message settings" title="Message settings">⚙</button>
+            </form>
+
+            <div class="messages-contacts-link">
+                <a th:href="@{/messages(view='contacts',theme=${theme})}"
+                   th:classappend="${view == 'contacts'} ? ' messages-link-current' : ''">
+                    <span aria-hidden="true">♟</span> Contacts
+                </a>
+            </div>
+
+            <nav class="messages-folders" aria-label="Message categories">
+                <details class="messages-folder">
+                    <summary>
+                        <span>Starred</span>
+                        <span class="messages-folder-count">(<span th:text="${starredCount}">0</span>)</span>
+                    </summary>
+                    <p class="messages-empty-category">No starred conversations.</p>
+                </details>
+                <details class="messages-folder">
+                    <summary>
+                        <span>Group</span>
+                        <span class="messages-folder-count">(<span th:text="${groupCount}">0</span>)</span>
+                    </summary>
+                    <p class="messages-empty-category">No group conversations.</p>
+                </details>
+                <details class="messages-folder">
+                    <summary>
+                        <span>Private</span>
+                        <span class="messages-folder-count">(<span th:text="${privateCount}">0</span>)</span>
+                    </summary>
+                    <p class="messages-empty-category">No private conversations.</p>
+                </details>
+            </nav>
+            <div class="messages-contact-empty" th:if="${view == 'contacts'}">
+                <p>No contacts yet.</p>
+                <a th:href="@{/messages(theme=${theme})}">Back to messages</a>
+            </div>
+        </aside>
+
+        <section class="messages-conversation" aria-label="Conversation">
+            <p class="visually-hidden" th:if="${view == 'messages'}">Select a conversation to view messages.</p>
+            <div class="messages-empty-state" th:if="${view == 'contacts'}">
+                <span class="messages-empty-icon" aria-hidden="true">♟</span>
+                <p>Your contacts will appear here.</p>
+                <span>Contacts are not available yet.</span>
+            </div>
+        </section>
+    </section>
+</main>
+</html>

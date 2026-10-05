@@ -77,13 +77,21 @@ than hard-deleted, especially after submissions or grades exist.
 
 1. Copy `src/main/resources/application.properties.example` to
    `src/main/resources/application.properties`. This local file is ignored by
-   Git.
-2. Set `DB_PASSWORD` in the IntelliJ run configuration environment variables
-   to the local `lms_app` password. `DB_URL` and `DB_USERNAME` can be left at
-   their local defaults, or set explicitly:
+   Git. The example imports an optional `.env` file from the project root.
+2. Copy `.env.example` to `.env` in the project root and replace
+   `DB_PASSWORD` with the local `lms_app` password. `.env` is ignored by Git
+   and must be created separately on each developer's machine. Alternatively,
+   provide the values as environment variables in the IDE run configuration.
+   `DB_URL` and `DB_USERNAME` can be left at their local defaults, or set in
+   `.env` / the process environment:
    - `DB_URL=jdbc:mysql://localhost:3306/lms_db`
    - `DB_USERNAME=lms_app`
-3. Start Spring Boot. Hibernate uses `validate`: it checks that Java entities
+3. (Optional) Set `LMS_JWT_SECRET` to a locally generated Base64-encoded key
+   of at least 32 bytes. Generate one with `openssl rand -base64 32`, or leave
+   it empty for a temporary key that changes on each application restart.
+   `LMS_JWT_EXPIRATION_SECONDS` defaults to `3600`.
+4. Start Spring Boot with the project root as the working directory, so Spring
+   can find `.env`. Hibernate uses `validate`: it checks that Java entities
    match the SQL schema and does not create or modify database tables.
 
 Do not use the MySQL `root` account in the application configuration and do

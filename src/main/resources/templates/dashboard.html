@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Dashboard - PTIT Learn</title>
+<main class="page dashboard-page" id="page-top">
+    <div class="dashboard-toolbar">
+        <p class="page-kicker">YOUR LEARNING SPACE</p>
+    </div>
+
+    <div class="dashboard-layout">
+        <div class="dashboard-main-column">
+            <section class="welcome-panel" aria-labelledby="dashboard-heading">
+                <div class="welcome-panel-copy">
+                    <span class="welcome-spark" aria-hidden="true">✦</span>
+                    <p class="welcome-overline" th:text="${todayLabel}">Monday, 5 October 2026</p>
+                    <h1 id="dashboard-heading">Welcome back, <span th:text="${user.fullName}">Learner</span>!</h1>
+                    <p>Here’s what’s happening in your learning space. Keep the momentum going!</p>
+                    <div class="welcome-actions">
+                        <a class="welcome-primary-link" href="#course-overview">Explore my courses <span aria-hidden="true">→</span></a>
+                        <a class="welcome-secondary-link" th:href="@{/profile}">View profile</a>
+                    </div>
+                </div>
+                <div class="welcome-illustration" aria-hidden="true">
+                    <span class="welcome-blob"></span>
+                    <span class="welcome-book">✧</span>
+                    <span class="welcome-star welcome-star-one">✦</span>
+                    <span class="welcome-star welcome-star-two">✧</span>
+                </div>
+            </section>
+
+            <section class="dashboard-intro-card" aria-labelledby="intro-heading">
+                <div class="intro-icon" aria-hidden="true">✺</div>
+                <div>
+                    <h2 id="intro-heading">Your learning at a glance</h2>
+                    <p>Find your courses, check upcoming activities, and stay up to date with your learning community.</p>
+                    <a th:href="@{/home#course-overview}">Open My courses <span aria-hidden="true">→</span></a>
+                </div>
+            </section>
+
+            <section th:replace="~{fragments/course-overview :: overview(
+                    ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/dashboard')}">
+            </section>
+
+            <section class="timeline-panel" aria-labelledby="timeline-heading">
+                <div class="dashboard-section-heading">
+                    <div>
+                        <p class="page-kicker">STAY ON TRACK</p>
+                        <h2 id="timeline-heading">Timeline</h2>
+                    </div>
+                    <a class="section-text-link" href="#timeline-heading">View all <span aria-hidden="true">→</span></a>
+                </div>
+                <form class="timeline-controls" th:action="@{/dashboard}" method="get">
+                    <label class="select-wrap">
+                        <span class="visually-hidden">Filter timeline</span>
+                        <select name="timelineFilter">
+                            <option value="all" th:selected="${timelineFilter == 'all'}">All</option>
+                            <option value="upcoming" th:selected="${timelineFilter == 'upcoming'}">Upcoming</option>
+                            <option value="past" th:selected="${timelineFilter == 'past'}">Past</option>
+                        </select>
+                    </label>
+                    <label class="select-wrap timeline-sort-select">
+                        <span class="visually-hidden">Sort timeline</span>
+                        <select name="timelineSort">
+                            <option value="dates" th:selected="${timelineSort == 'dates'}">Sort by dates</option>
+                            <option value="latest" th:selected="${timelineSort == 'latest'}">Sort by latest</option>
+                        </select>
+                    </label>
+                    <label class="timeline-search">
+                        <span aria-hidden="true">⌕</span>
+                        <span class="visually-hidden">Search activities</span>
+                        <input type="search" name="timelineQuery" th:value="${timelineQuery}"
+                               placeholder="Search by activity type or name">
+                    </label>
+                    <input type="hidden" name="status" th:value="${status}">
+                    <input type="hidden" name="q" th:value="${query}">
+                    <input type="hidden" name="sort" th:value="${sort}">
+                    <input type="hidden" name="view" th:value="${view}">
+                    <input type="hidden" name="theme" th:value="${theme}">
+                    <input type="hidden" name="month" th:value="${calendarMonth}">
+                    <input type="hidden" name="day" th:value="${selectedDay}">
+                    <button type="submit" class="timeline-apply">Apply</button>
+                </form>
+
+                <div class="timeline-empty" th:if="${#lists.isEmpty(activities)}">
+                    No activities match this search.
+                </div>
+                <div class="timeline-activities" th:unless="${#lists.isEmpty(activities)}">
+                    <article class="timeline-activity" th:each="activity : ${activities}">
+                        <h3 class="timeline-date" th:text="${activity.formattedDate()}">Wednesday, 23 December 2026</h3>
+                        <div class="activity-card">
+                            <time class="activity-time" th:text="${activity.dueTime}">06:00</time>
+                            <span class="activity-icon" aria-hidden="true">⇧</span>
+                            <div class="activity-description">
+                                <a href="#timeline-heading" th:text="${activity.title}">Assignment</a>
+                                <p th:text="${activity.courseLabel}">Assignment is due · Course</p>
+                            </div>
+                            <a class="submission-link" href="#timeline-heading">Add submission</a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+        <aside class="dashboard-side-column" aria-label="Dashboard blocks">
+            <section class="calendar-panel" aria-labelledby="calendar-heading">
+                <div class="side-panel-heading">
+                    <h2 id="calendar-heading">Calendar</h2>
+                    <span class="calendar-accent" aria-hidden="true">✦</span>
+                </div>
+                <div class="calendar-month-nav">
+                    <a th:href="@{/dashboard(month=${previousMonth},theme=${theme},status=${status},q=${query},
+                            sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
+                            timelineQuery=${timelineQuery},day=1)}"
+                       aria-label="Previous month">‹</a>
+                    <span th:text="${calendarMonthLabel}">October 2026</span>
+                    <a th:href="@{/dashboard(month=${nextMonth},theme=${theme},status=${status},q=${query},
+                            sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
+                            timelineQuery=${timelineQuery},day=1)}"
+                       aria-label="Next month">›</a>
+                </div>
+                <div class="calendar-grid" role="grid" aria-label="Calendar">
+                    <span class="weekday-label" th:each="weekday : ${weekdays}" th:text="${weekday}">Mon</span>
+                    <th:block th:each="cell : ${calendarCells}">
+                        <span class="calendar-day calendar-blank" th:if="${cell.day.isEmpty()}"></span>
+                        <a class="calendar-day" th:unless="${cell.day.isEmpty()}"
+                           th:classappend="${cell.selected} ? ' calendar-selected' : (${cell.today} ? ' calendar-today' : '')"
+                           th:attr="aria-current=${cell.today} ? 'date' : null,
+                                    aria-label=${calendarMonthLabel + ' ' + cell.day}"
+                           th:href="@{/dashboard(month=${calendarMonth},day=${cell.day},theme=${theme},status=${status},q=${query},
+                                   sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
+                                   timelineQuery=${timelineQuery})}">
+                            <span th:text="${cell.day}">1</span>
+                            <i th:if="${cell.hasEvent}" aria-hidden="true"></i>
+                        </a>
+                    </th:block>
+                </div>
+                <p class="calendar-selection">
+                    Selected <strong th:text="${calendarMonthLabel} + ' ' + ${selectedDay}">October 5</strong>
+                </p>
+                <div class="calendar-links">
+                    <a th:href="@{/calendar(month=${calendarMonth},day=${selectedDay})}">Full calendar</a>
+                    <span aria-hidden="true">·</span>
+                    <a th:href="@{/calendar(month=${calendarMonth},day=${selectedDay})}">Import or export calendars</a>
+                </div>
+            </section>
+
+            <section class="announcement-panel" aria-labelledby="announcements-heading">
+                <div class="side-panel-heading">
+                    <h2 id="announcements-heading">Latest announcements</h2>
+                    <span class="announcement-icon" aria-hidden="true">✳</span>
+                </div>
+                <article class="announcement">
+                    <p class="announcement-meta">2 October 2026, 8:12 AM</p>
+                    <p class="announcement-author">Anna Alexander</p>
+                    <a href="#announcements-heading">Mount Orange is now running Moodle LMS 5.3!</a>
+                    <a class="older-topics" href="#announcements-heading">Older topics ...</a>
+                </article>
+            </section>
+
+            <section class="dashboard-tip-panel">
+                <span class="tip-mark" aria-hidden="true">✦</span>
+                <p class="page-kicker">A LITTLE REMINDER</p>
+                <h2>Small steps add up.</h2>
+                <p>Check your timeline to stay ahead of upcoming assignments.</p>
+                <a href="#timeline-heading">See your timeline <span aria-hidden="true">→</span></a>
+            </section>
+        </aside>
+    </div>
+</main>
+</html>

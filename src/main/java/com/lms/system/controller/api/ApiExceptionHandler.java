@@ -1,4 +1,4 @@
-package com.lms.system.controller;
+package com.lms.system.controller.api;
 
 import com.lms.system.dto.api.ApiErrorResponse;
 import com.lms.system.exception.DuplicateEmailException;

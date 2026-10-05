@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Calendar - PTIT Learn</title>
+<main class="page full-calendar-page">
+    <div class="calendar-page-heading">
+        <div>
+            <p class="page-kicker">YOUR LEARNING SPACE</p>
+            <h1>Calendar</h1>
+        </div>
+        <label class="calendar-view-select">
+            <span class="visually-hidden">Calendar view</span>
+            <select aria-label="Calendar view">
+                <option selected>Month</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="full-calendar-layout">
+        <section class="calendar-main-content" aria-labelledby="calendar-month-heading">
+            <div class="calendar-month-toolbar">
+                <a class="month-neighbor"
+                   th:href="@{/calendar(month=${previousMonth},theme=${theme},day=1,visible=${visibleCategoryCodes})}">
+                    <span aria-hidden="true">◀</span>
+                    <span th:text="${previousMonthLabel}">September 2026</span>
+                </a>
+                <h2 id="calendar-month-heading" th:text="${calendarMonthLabel}">October 2026</h2>
+                <a class="month-neighbor month-neighbor-next"
+                   th:href="@{/calendar(month=${nextMonth},theme=${theme},day=1,visible=${visibleCategoryCodes})}">
+                    <span th:text="${nextMonthLabel}">November 2026</span>
+                    <span aria-hidden="true">▶</span>
+                </a>
+            </div>
+
+            <div class="full-calendar-grid" role="grid" aria-label="Monthly calendar">
+                <div class="full-calendar-weekday" role="columnheader"
+                     th:each="weekday : ${weekdays}" th:text="${weekday}">Sun</div>
+                <th:block th:each="cell : ${calendarCells}">
+                    <div class="full-calendar-cell calendar-empty-cell" role="gridcell" th:if="${cell.day.isEmpty()}"></div>
+                    <div class="full-calendar-cell" role="gridcell" th:unless="${cell.day.isEmpty()}"
+                         th:classappend="${cell.selected} ? ' selected-calendar-cell' : (${cell.today} ? ' today-calendar-cell' : '')">
+                        <a class="full-calendar-day" th:href="@{/calendar(month=${calendarMonth},day=${cell.day},
+                                theme=${theme},visible=${visibleCategoryCodes})}"
+                           th:attr="aria-current=${cell.today} ? 'date' : null,
+                                    aria-label=${calendarMonthLabel + ' ' + cell.day}">
+                            <span th:text="${cell.day}">1</span>
+                        </a>
+                        <span class="calendar-event-indicator" th:if="${cell.hasEvents}" aria-label="Events on this date">
+                            <i></i><i></i>
+                        </span>
+                    </div>
+                </th:block>
+            </div>
+
+            <section class="selected-day-events" aria-labelledby="selected-day-heading">
+                <div class="selected-day-heading">
+                    <div>
+                        <p class="page-kicker">YOUR SCHEDULE</p>
+                        <h2 id="selected-day-heading" th:text="${selectedDateLabel}">Monday, 5 October 2026</h2>
+                    </div>
+                    <span class="event-total"
+                          th:text="${#lists.size(selectedEvents)} + (${#lists.size(selectedEvents) == 1} ? ' event' : ' events')">0 events</span>
+                </div>
+                <div class="calendar-no-events" th:if="${#lists.isEmpty(selectedEvents)}">
+                    <span class="no-event-icon" aria-hidden="true">✦</span>
+                    <div>
+                        <h3>No events for this day</h3>
+                        <p>Events associated with this date will appear here.</p>
+                    </div>
+                </div>
+                <article class="calendar-event-card" th:each="event : ${selectedEvents}">
+                    <span class="event-category-swatch" th:classappend="${event.category.cssClass}"></span>
+                    <time class="calendar-event-time" th:text="${event.time}">09:00</time>
+                    <div class="calendar-event-copy">
+                        <h3 th:text="${event.title}">Event title</h3>
+                        <p th:text="${event.description}">Event description</p>
+                        <span class="calendar-event-course" th:if="${event.courseName != null}"
+                              th:text="${event.courseName}">Course</span>
+                    </div>
+                </article>
+                <p class="calendar-demo-note">Sample events are shown for preview. Imported user events can be connected to this calendar service.</p>
+            </section>
+        </section>
+
+        <aside class="calendar-event-key" aria-labelledby="event-key-heading">
+            <h2 id="event-key-heading">Events key</h2>
+            <p class="event-key-description">Choose which event types to display.</p>
+            <form th:action="@{/calendar}" method="get">
+                <input type="hidden" name="month" th:value="${calendarMonth}">
+                <input type="hidden" name="day" th:value="${selectedDay}">
+                <input type="hidden" name="theme" th:value="${theme}">
+                <div class="event-key-list">
+                    <label class="event-key-item" th:each="category : ${eventCategories}">
+                        <input type="checkbox" name="visible" th:value="${category.code}"
+                               th:checked="${visibleCategories.contains(category)}">
+                        <span class="event-key-visibility" th:classappend="${category.cssClass}" aria-hidden="true">
+                            <span th:if="${visibleCategories.contains(category)}">◉</span>
+                            <span th:unless="${visibleCategories.contains(category)}">◉̸</span>
+                        </span>
+                        <span th:text="${(visibleCategories.contains(category) ? 'Hide ' : 'Show ') + category.label.toLowerCase()}">
+                            Hide site events
+                        </span>
+                    </label>
+                </div>
+                <button class="event-key-apply" type="submit">Update calendar</button>
+            </form>
+            <p class="event-key-note">Event categories can be connected to imported user, course, and site events.</p>
+        </aside>
+    </div>
+</main>
+</html>
