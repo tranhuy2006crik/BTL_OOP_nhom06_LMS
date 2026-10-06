@@ -6,6 +6,7 @@ import com.lms.system.exception.InvalidPasswordException;
 import com.lms.system.exception.ResourceNotFoundException;
 import com.lms.system.model.PasswordHasher;
 import com.lms.system.model.User;
+import com.lms.system.model.UserProfileDetails;
 import com.lms.system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +29,35 @@ public class ProfileService {
     }
 
     @Transactional
-    public User updateProfile(Long userId, ProfileForm form) {
+    public User updateProfile(
+            Long userId,
+            ProfileForm form,
+            byte[] profilePicture,
+            String pictureContentType,
+            boolean deleteProfilePicture
+    ) {
         User user = getProfile(userId);
-        user.updateProfile(form.getFullName());
+        UserProfileDetails details = form.toUserProfileDetails();
+        if (profilePicture != null && profilePicture.length > 0) {
+            User.validateProfilePicture(profilePicture, pictureContentType);
+        }
+        user.updateProfile(form.getFullName(), details);
+        if (profilePicture != null && profilePicture.length > 0) {
+            user.updateProfilePicture(profilePicture, pictureContentType);
+        } else if (deleteProfilePicture) {
+            user.updateProfilePicture(null, null);
+        }
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateProfile(Long userId, ProfileForm form) {
+        return updateProfile(userId, form, null, null, false);
+    }
+
+    @Transactional(readOnly = true)
+    public User getProfilePicture(Long userId) {
+        return getProfile(userId);
     }
 
     @Transactional

@@ -7,6 +7,7 @@ import com.lms.system.exception.ResourceNotFoundException;
 import com.lms.system.model.PasswordHasher;
 import com.lms.system.model.User;
 import com.lms.system.repository.UserRepository;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -36,14 +38,59 @@ class ProfileServiceTest {
     }
 
     @Test
-    void updateProfileChangesOnlyTheAuthenticatedUsersName() {
+    void updateProfilePersistsEditableDetailsForTheAuthenticatedUser() {
         ProfileForm form = new ProfileForm("  New Name  ");
+        form.setCityTown(" Orange City ");
+        form.setCountry("Australia");
+        form.setTimezone("Australia/Sydney");
+        form.setDescription("Learner profile");
+        form.setInterests("music, films");
+        form.setPhone("+61 555 0100");
+        form.setEmailVisibility("HIDDEN");
 
         User updated = profileService.updateProfile(7L, form);
 
         assertEquals("New Name", updated.getFullName());
         assertEquals("student@example.com", updated.getEmail());
+        assertEquals("Orange City", updated.getCityTown());
+        assertEquals("Australia", updated.getCountry());
+        assertEquals("Australia/Sydney", updated.getTimezone());
+        assertEquals("Learner profile", updated.getDescription());
+        assertEquals("music, films", updated.getInterests());
+        assertEquals("+61 555 0100", updated.getPhone());
+        assertEquals("HIDDEN", updated.getEmailVisibility());
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void profileFormSplitsAndCombinesTheExistingFullName() {
+        ProfileForm form = new ProfileForm(user);
+
+        assertEquals("Old", form.getFirstName());
+        assertEquals("Name", form.getLastName());
+
+        form.setFirstName("New");
+        form.setLastName("Learner");
+        assertEquals("New Learner", form.getFullName());
+
+        try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+            assertTrue(validatorFactory.getValidator().validate(form).isEmpty());
+        }
+    }
+
+    @Test
+    void updateProfileStoresSupportedImageBytesAndRejectsUnsupportedImageData() {
+        ProfileForm form = new ProfileForm("Learner");
+        byte[] pngSignature = {(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
+
+        profileService.updateProfile(7L, form, pngSignature, "image/png", false);
+
+        org.junit.jupiter.api.Assertions.assertArrayEquals(pngSignature, user.getProfilePicture());
+        assertEquals("image/png", user.getProfilePictureContentType());
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> profileService.updateProfile(7L, form, new byte[]{1, 2, 3}, "image/png", false));
+        assertEquals("Learner", user.getFullName());
     }
 
     @Test

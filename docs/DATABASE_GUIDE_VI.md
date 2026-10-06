@@ -1,7 +1,7 @@
 # Tài liệu cơ sở dữ liệu LMS Moodle-like
 
-Tài liệu này mô tả schema MySQL v2 trong
-`src/main/resources/db/mysql-schema.sql`. Database có 17 bảng, được tổ chức
+Tài liệu này mô tả schema MySQL v3 trong
+`src/main/resources/db/mysql-schema.sql`. Database có 18 bảng, được tổ chức
 quanh người dùng, khóa học và các hoạt động trong khóa học.
 
 ## 1. Nhìn nhanh luồng dữ liệu
@@ -26,7 +26,8 @@ hệ một-nhiều.
 
 | Bảng | Vai trò | Khóa chính | Liên kết chính |
 |---|---|---|---|
-| `users` | Tài khoản người dùng và hồ sơ cơ bản | `id` | Được tham chiếu bởi bảng vai trò, khóa học, bài nộp, điểm, tệp và thông báo |
+| `users` | Tài khoản đăng nhập và trạng thái người dùng | `id` | Được tham chiếu bởi bảng hồ sơ, vai trò, khóa học, bài nộp, điểm, tệp và thông báo |
+| `user_profiles` | Thông tin hồ sơ tùy chọn và ảnh cá nhân | `user_id` | Quan hệ 1-1 với `users`; tự xóa khi tài khoản bị xóa |
 | `roles` | Danh mục vai trò và phạm vi áp dụng | `id` | Dùng để gán quyền toàn hệ thống hoặc vai trò trong khóa học |
 | `system_role_assignments` | Gán role toàn hệ thống, hiện dùng cho Admin | `(user_id, role_id)` | Nối `users` với role có scope `SYSTEM` |
 | `course_categories` | Danh mục khóa học, hỗ trợ cây danh mục | `id` | Có thể có danh mục cha và nhiều khóa học |
@@ -55,6 +56,7 @@ schema SQL.
 | Bảng | Cột đáng chú ý |
 |---|---|
 | `users` | `email` duy nhất; `password_hash` chỉ lưu mật khẩu đã băm; `full_name`; `status` (`ACTIVE`, `SUSPENDED`, `DELETED`); `created_at`, `updated_at` |
+| `user_profiles` | Thông tin hồ sơ mở rộng, tùy chọn và ảnh đại diện; khóa chính đồng thời là khóa ngoại đến `users` |
 | `roles` | `code` duy nhất (`ADMIN`, `TEACHER`, `STUDENT`); `name`; `scope` (`SYSTEM` hoặc `COURSE`) |
 | `system_role_assignments` | `user_id`, `role_id`, `role_scope`, `assigned_at`; khóa ngoại ghép bảo đảm role được gán có scope `SYSTEM` |
 
@@ -189,7 +191,10 @@ sử nhiều lần ghi danh có thể được bổ sung bằng migration sau.
 
 - Database mới: chạy `src/main/resources/db/mysql-schema.sql`.
 - Database v1 đã tạo trước đó: backup rồi chạy một lần
-  `src/main/resources/db/mysql-upgrade-v1-to-v2.sql`.
-- Không chạy lại migration v1 → v2 và không kỳ vọng
+  `src/main/resources/db/mysql-upgrade-v1-to-v2.sql`, sau đó chạy
+  `src/main/resources/db/mysql-upgrade-v2-to-v3.sql`.
+- Database v2: backup rồi chạy một lần
+  `src/main/resources/db/mysql-upgrade-v2-to-v3.sql`.
+- Không chạy lại các migration và không kỳ vọng
   `CREATE TABLE IF NOT EXISTS` cập nhật bảng đã có.
 - Xem thêm `docs/DB_SETUP.md` để biết cách cấu hình MySQL và Spring Boot.

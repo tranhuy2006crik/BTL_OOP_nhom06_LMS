@@ -19,6 +19,36 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'SUSPENDED', 'DELETED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id BIGINT UNSIGNED NOT NULL,
+    email_visibility VARCHAR(30) NOT NULL DEFAULT 'COURSE_PARTICIPANTS',
+    city_town VARCHAR(100) NULL,
+    country VARCHAR(100) NULL,
+    timezone VARCHAR(80) NULL,
+    preferred_theme VARCHAR(20) NOT NULL DEFAULT 'DEFAULT',
+    description TEXT NULL,
+    picture_description VARCHAR(255) NULL,
+    first_name_phonetic VARCHAR(100) NULL,
+    last_name_phonetic VARCHAR(100) NULL,
+    middle_name VARCHAR(100) NULL,
+    alternate_name VARCHAR(100) NULL,
+    interests TEXT NULL,
+    id_number VARCHAR(100) NULL,
+    institution VARCHAR(150) NULL,
+    department VARCHAR(150) NULL,
+    phone VARCHAR(40) NULL,
+    mobile_phone VARCHAR(40) NULL,
+    address VARCHAR(255) NULL,
+    skype_id VARCHAR(100) NULL,
+    website VARCHAR(255) NULL,
+    profile_picture MEDIUMBLOB NULL,
+    profile_picture_content_type VARCHAR(30) NULL,
+    PRIMARY KEY (user_id),
+    CONSTRAINT fk_user_profiles_user
+        FOREIGN KEY (user_id) REFERENCES users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS roles (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     code VARCHAR(30) NOT NULL,
@@ -314,7 +344,7 @@ ON DUPLICATE KEY UPDATE
     name = new_role.name,
     scope = new_role.scope;
 
--- Post-install verification: expect 17 tables and the three role/scope pairs.
+-- Post-install verification: expect 18 tables and the three role/scope pairs.
 SELECT COUNT(*) AS lms_table_count
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = 'lms_db'

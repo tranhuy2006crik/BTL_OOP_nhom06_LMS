@@ -10,6 +10,9 @@ spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.open-in-view=false
 
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=3MB
+
 # Optional Base64-encoded 256-bit (or longer) HMAC key for JWT signing.
 # Generate one with: openssl rand -base64 32
 # If omitted, a random process-local key is generated; tokens expire on restart.

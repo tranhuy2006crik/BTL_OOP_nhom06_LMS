@@ -148,7 +148,41 @@ class ApiAuthControllerTest {
 
         MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
         mockMvc.perform(get("/profile").session(session))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Profile - PTIT Learn</title>")))
+                .andExpect(content().string(containsString("User details")))
+                .andExpect(content().string(containsString(email)))
+                .andExpect(content().string(containsString("Course details")))
+                .andExpect(content().string(containsString("Dementia care: Caring for the Carers")))
+                .andExpect(content().string(containsString("sample courses")))
+                .andExpect(content().string(containsString("href=\"/profile/edit?theme=light\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Change password"))));
+        mockMvc.perform(get("/profile/edit").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Edit profile - PTIT Learn</title>")))
+                .andExpect(content().string(containsString("General")))
+                .andExpect(content().string(containsString("User picture")))
+                .andExpect(content().string(containsString("Additional names")))
+                .andExpect(content().string(containsString("Interests")))
+                .andExpect(content().string(containsString("Optional")))
+                .andExpect(content().string(containsString("Other fields")))
+                .andExpect(content().string(containsString("Update profile")))
+                .andExpect(content().string(containsString("Change password")))
+                .andExpect(content().string(containsString("New password")))
+                .andExpect(content().string(containsString("name=\"firstName\"")))
+                .andExpect(content().string(containsString("name=\"lastName\"")))
+                .andExpect(content().string(containsString("name=\"cityTown\"")))
+                .andExpect(content().string(containsString("name=\"country\"")))
+                .andExpect(content().string(containsString("name=\"interests\"")))
+                .andExpect(content().string(containsString("name=\"profilePicture\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("disabled"))));
+        mockMvc.perform(get("/profile/edit").session(session).param("theme", "invalid"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/profile").session(session).param("theme", "dark"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-theme=\"dark\"")));
+        mockMvc.perform(get("/profile").session(session).param("theme", "invalid"))
+                .andExpect(status().isBadRequest());
         mockMvc.perform(get("/home").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString(">Home</a>"))))

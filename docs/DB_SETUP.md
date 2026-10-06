@@ -9,24 +9,30 @@ values, and backend rules, see `docs/DATABASE_GUIDE_VI.md`.
 ## Create or upgrade the database
 
 For a new database, `src/main/resources/db/mysql-schema.sql` is the complete
-fresh-install script: it creates all 17 tables, seeds the roles, then runs
+fresh-install script: it creates all tables, seeds the roles, then runs
 verification queries. Open it in MySQL Workbench and execute the whole file.
-The final results should show 17 base tables and `ADMIN` → `SYSTEM`,
+The final results should show the expected base tables and `ADMIN` → `SYSTEM`,
 `TEACHER` / `STUDENT` → `COURSE`.
 
 This fresh-install script does not alter existing tables. For an existing v1
 database, do not use it as a migration.
 
-If the database was created earlier from schema v1, back it up first, then run
-`src/main/resources/db/mysql-upgrade-v1-to-v2.sql` exactly once as an
-administrator. Do not run the upgrade on a fresh v2 database. The upgrade
-preserves existing data and adds columns and constraints. It assumes existing
-system-role assignments use `ADMIN` and course memberships use `TEACHER` or
-`STUDENT`; invalid role assignments can make the migration fail. The database
-cannot validate that each `ACTIVITIES` row has exactly one matching subtype
-row, so the service layer must maintain that invariant.
+For a database at schema v1, back it up and run
+`src/main/resources/db/mysql-upgrade-v1-to-v2.sql` once, then run
+`src/main/resources/db/mysql-upgrade-v2-to-v3.sql` once. For a database
+already at v2, run only `mysql-upgrade-v2-to-v3.sql`. Do not run an upgrade on
+a fresh schema or run the same upgrade more than once. The scripts preserve
+existing data and add columns and constraints. The v1-to-v2 upgrade assumes
+existing system-role assignments use `ADMIN` and course memberships use
+`TEACHER` or `STUDENT`; invalid role assignments can make that migration fail.
+The v2-to-v3 upgrade creates the one-to-one `user_profiles` table for optional
+profile fields and profile pictures, keeping account credentials and status in
+the smaller `users` table. The application validates profile pictures as
+JPEG, PNG, or GIF up to 2 MB.
+The database cannot validate that each `ACTIVITIES` row has exactly one
+matching subtype row, so the service layer must maintain that invariant.
 
-After either path, confirm the database and role seed data:
+After the applicable migration path, confirm the database and role seed data:
 
    ```sql
    USE lms_db;

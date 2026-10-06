@@ -14,11 +14,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmailIgnoreCase(String email);
 
-    @EntityGraph(attributePaths = {"systemRoleAssignments.role", "courseMemberships.role"})
+    @EntityGraph(attributePaths = {"systemRoleAssignments.role", "courseMemberships.role", "profile"})
     @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
     Optional<User> findWithAccessByEmail(@Param("email") String email);
 
-    @EntityGraph(attributePaths = {"systemRoleAssignments.role", "courseMemberships.role"})
+    @EntityGraph(attributePaths = {"systemRoleAssignments.role", "courseMemberships.role", "profile"})
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findWithAccessById(@Param("id") Long id);
 }

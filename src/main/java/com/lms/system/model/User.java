@@ -4,18 +4,22 @@ import com.lms.system.exception.InvalidPasswordException;
 import com.lms.system.model.access.AccessContext;
 import com.lms.system.model.access.RoleAccessFactory;
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -26,6 +30,10 @@ import java.util.Set;
 public class User {
 
     private static final int MIN_PASSWORD_LENGTH = 8;
+    private static final UserProfileDetails EMPTY_PROFILE_DETAILS = new UserProfileDetails(
+            "COURSE_PARTICIPANTS", null, null, null, "DEFAULT", null, null,
+            null, null, null, null, null, null, null, null, null, null, null, null, null
+    );
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +65,9 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<CourseMembership> courseMemberships = new HashSet<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserProfile profile;
+
     protected User() {
     }
 
@@ -75,6 +86,46 @@ public class User {
 
     public void updateProfile(String newFullName) {
         this.fullName = requireFullName(newFullName);
+    }
+
+    public void updateProfile(String newFullName, UserProfileDetails details) {
+        String validatedName = requireFullName(newFullName);
+        this.fullName = validatedName;
+        updateProfileDetails(details);
+    }
+
+    public void updateProfileDetails(UserProfileDetails details) {
+        UserProfile userProfile = ensureProfile();
+        userProfile.update(details);
+    }
+
+    public void updateProfilePicture(byte[] picture, String contentType) {
+        if (picture == null || picture.length == 0) {
+            ensureProfile().updatePicture(null, null);
+            return;
+        }
+        validateProfilePicture(picture, contentType);
+        ensureProfile().updatePicture(picture, contentType);
+    }
+
+    private UserProfile ensureProfile() {
+        if (profile == null) {
+            profile = new UserProfile(this);
+        }
+        return profile;
+    }
+
+    private UserProfileDetails profileDetails() {
+        return profile == null ? EMPTY_PROFILE_DETAILS : profile.details();
+    }
+
+    public static void validateProfilePicture(byte[] picture, String contentType) {
+        if (picture.length > 2 * 1024 * 1024) {
+            throw new IllegalArgumentException("Profile picture must not exceed 2 MB");
+        }
+        if (!isSupportedImage(picture, contentType)) {
+            throw new IllegalArgumentException("Profile picture must be a JPEG, PNG, or GIF image");
+        }
     }
 
     public void changePassword(String currentRawPassword, String newRawPassword, PasswordHasher hasher) {
@@ -188,6 +239,94 @@ public class User {
         return fullName;
     }
 
+    public String getEmailVisibility() {
+        return profileDetails().emailVisibility();
+    }
+
+    public String getCityTown() {
+        return profileDetails().cityTown();
+    }
+
+    public String getCountry() {
+        return profileDetails().country();
+    }
+
+    public String getTimezone() {
+        return profileDetails().timezone();
+    }
+
+    public String getPreferredTheme() {
+        return profileDetails().preferredTheme();
+    }
+
+    public String getDescription() {
+        return profileDetails().description();
+    }
+
+    public String getPictureDescription() {
+        return profileDetails().pictureDescription();
+    }
+
+    public String getFirstNamePhonetic() {
+        return profileDetails().firstNamePhonetic();
+    }
+
+    public String getLastNamePhonetic() {
+        return profileDetails().lastNamePhonetic();
+    }
+
+    public String getMiddleName() {
+        return profileDetails().middleName();
+    }
+
+    public String getAlternateName() {
+        return profileDetails().alternateName();
+    }
+
+    public String getInterests() {
+        return profileDetails().interests();
+    }
+
+    public String getIdNumber() {
+        return profileDetails().idNumber();
+    }
+
+    public String getInstitution() {
+        return profileDetails().institution();
+    }
+
+    public String getDepartment() {
+        return profileDetails().department();
+    }
+
+    public String getPhone() {
+        return profileDetails().phone();
+    }
+
+    public String getMobilePhone() {
+        return profileDetails().mobilePhone();
+    }
+
+    public String getAddress() {
+        return profileDetails().address();
+    }
+
+    public String getSkypeId() {
+        return profileDetails().skypeId();
+    }
+
+    public String getWebsite() {
+        return profileDetails().website();
+    }
+
+    public byte[] getProfilePicture() {
+        return profile == null ? null : profile.picture();
+    }
+
+    public String getProfilePictureContentType() {
+        return profile == null ? null : profile.pictureContentType();
+    }
+
     public UserStatus getStatus() {
         return status;
     }
@@ -242,5 +381,23 @@ public class User {
             throw new IllegalArgumentException("password_hash is required");
         }
         return passwordHash;
+    }
+
+    private static boolean isSupportedImage(byte[] picture, String contentType) {
+        if ("image/jpeg".equals(contentType)) {
+            return picture.length >= 3
+                    && (picture[0] & 0xff) == 0xff
+                    && (picture[1] & 0xff) == 0xd8
+                    && (picture[2] & 0xff) == 0xff;
+        }
+        if ("image/png".equals(contentType)) {
+            byte[] signature = {(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
+            return picture.length >= signature.length
+                    && Arrays.equals(Arrays.copyOf(picture, signature.length), signature);
+        }
+        return "image/gif".equals(contentType)
+                && picture.length >= 6
+                && (new String(picture, 0, 6, java.nio.charset.StandardCharsets.US_ASCII).equals("GIF87a")
+                || new String(picture, 0, 6, java.nio.charset.StandardCharsets.US_ASCII).equals("GIF89a"));
     }
 }

@@ -1,50 +1,79 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
-<title>Hồ sơ cá nhân - LMS</title>
-<main>
+<title>Profile - PTIT Learn</title>
+<main class="page profile-page">
     <div th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></div>
 
-    <div class="card">
-        <h1>Hồ sơ cá nhân</h1>
-        <p class="muted" th:text="${user.email}"></p>
-        <p>
-            <span class="badge" th:text="${user.status}">ACTIVE</span>
-            <span class="badge" th:if="${user.systemAdmin}">Quản trị hệ thống</span>
-        </p>
+    <header class="profile-heading">
+        <img class="profile-avatar" th:if="${user.profilePicture != null}"
+             th:src="@{/profile/picture}" th:alt="${user.pictureDescription}">
+        <span class="profile-avatar" th:unless="${user.profilePicture != null}" aria-hidden="true"
+              th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+        <div>
+            <p class="page-kicker">LEARNER PROFILE</p>
+            <h1 th:text="${user.fullName}">Learner name</h1>
+        </div>
+    </header>
+    <p class="profile-intro"
+       th:text="${#strings.isEmpty(user.description) ? 'Your learning profile and course information.' : user.description}">
+        Your learning profile and course information.
+    </p>
+
+    <div class="profile-overview">
+        <section class="profile-panel user-details-panel" aria-labelledby="user-details-heading">
+            <div class="profile-panel-heading">
+                <h2 id="user-details-heading">User details</h2>
+                <a th:href="@{/profile/edit(theme=${theme})}">Edit profile</a>
+            </div>
+            <dl class="profile-details">
+                <div>
+                    <dt>Email address</dt>
+                    <dd>
+                        <a th:href="'mailto:' + ${user.email}" th:text="${user.email}">learner@example.com</a>
+                        <span class="profile-visibility-note"
+                              th:text="${user.emailVisibility == 'HIDDEN' ? '(Hidden from other users)' : '(Visible to course participants)'}">
+                            (Visible to course participants)
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Country</dt>
+                    <dd th:text="${#strings.isEmpty(user.country) ? 'Not provided' : user.country}">Not provided</dd>
+                </div>
+                <div>
+                    <dt>City/town</dt>
+                    <dd th:text="${#strings.isEmpty(user.cityTown) ? 'Not provided' : user.cityTown}">Not provided</dd>
+                </div>
+                <div>
+                    <dt>Timezone</dt>
+                    <dd th:text="${#strings.isEmpty(user.timezone) ? 'Not provided' : user.timezone}">Not provided</dd>
+                </div>
+                <div>
+                    <dt>Interests</dt>
+                    <dd>
+                        <span th:if="${#strings.isEmpty(user.interests)}" class="profile-muted-value">No interests added</span>
+                        <span th:unless="${#strings.isEmpty(user.interests)}" th:text="${user.interests}">Interests</span>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="profile-panel course-details-panel" aria-labelledby="course-details-heading">
+            <div class="profile-panel-heading">
+                <h2 id="course-details-heading">Course details</h2>
+            </div>
+            <h3>Course profiles</h3>
+            <ul class="profile-course-list">
+                <li th:each="course : ${profileCourses}">
+                    <a th:href="@{/home#course-overview}" th:text="${course.title}">Course title</a>
+                </li>
+            </ul>
+            <p class="profile-sample-note">
+                These are sample courses for the interface preview. Enrolled courses will appear here when course data is connected.
+            </p>
+            <a class="profile-view-more" th:href="@{/home}">View courses</a>
+        </section>
     </div>
 
-    <div class="grid-2">
-        <div class="card">
-            <h2>Cập nhật thông tin</h2>
-            <form th:action="@{/profile}" th:object="${profileForm}" method="post">
-                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
-                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
-                </div>
-                <label for="fullName">Họ tên</label>
-                <input id="fullName" type="text" th:field="*{fullName}">
-                <div class="muted" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-                <button class="btn" type="submit">Lưu hồ sơ</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Đổi mật khẩu</h2>
-            <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post">
-                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
-                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
-                </div>
-                <label for="currentPassword">Mật khẩu hiện tại</label>
-                <input id="currentPassword" type="password" th:field="*{currentPassword}">
-
-                <label for="newPassword">Mật khẩu mới</label>
-                <input id="newPassword" type="password" th:field="*{newPassword}">
-                <div class="muted" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
-
-                <label for="confirmNewPassword">Nhập lại mật khẩu mới</label>
-                <input id="confirmNewPassword" type="password" th:field="*{confirmNewPassword}">
-                <button class="btn" type="submit">Đổi mật khẩu</button>
-            </form>
-        </div>
-    </div>
 </main>
 </html>
