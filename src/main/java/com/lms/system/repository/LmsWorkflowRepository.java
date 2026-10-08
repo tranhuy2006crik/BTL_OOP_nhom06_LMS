@@ -26,6 +26,7 @@ public class LmsWorkflowRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // Lấy ID nội bộ từ email trong phiên đăng nhập; không nhận user ID do client tự gửi.
     public Long requireActiveUserId(String email) {
         List<Long> userIds = jdbcTemplate.query(
                 "SELECT id FROM users WHERE email = ? AND status = 'ACTIVE'",
@@ -38,6 +39,7 @@ public class LmsWorkflowRepository {
         return userIds.get(0);
     }
 
+    // Cho phép quản lý nếu user là giảng viên của khóa hoặc admin toàn hệ thống.
     public boolean canManageCourse(Long userId, Long courseId) {
         Boolean allowed = jdbcTemplate.queryForObject("""
                 SELECT EXISTS (
@@ -56,6 +58,7 @@ public class LmsWorkflowRepository {
         return Boolean.TRUE.equals(allowed);
     }
 
+    // Membership phải đang ACTIVE và có role STUDENT thì mới được xem nội dung dành cho học viên.
     public boolean isActiveStudent(Long userId, Long courseId) {
         Boolean enrolled = jdbcTemplate.queryForObject("""
                 SELECT EXISTS (
@@ -69,6 +72,7 @@ public class LmsWorkflowRepository {
         return Boolean.TRUE.equals(enrolled);
     }
 
+    // Chỉ khóa học đã công bố mới nhận ghi danh.
     public void requirePublishedCourse(Long courseId) {
         List<String> statuses = jdbcTemplate.query(
                 "SELECT status FROM courses WHERE id = ?",
@@ -83,6 +87,7 @@ public class LmsWorkflowRepository {
         }
     }
 
+    // Kiểm tra section thuộc đúng course để không thao tác chéo giữa các khóa học.
     public void requireSectionInCourse(Long sectionId, Long courseId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM course_sections WHERE id = ? AND course_id = ?",
@@ -95,6 +100,8 @@ public class LmsWorkflowRepository {
         }
     }
 
+    // Metadata nằm trong activities, còn nội dung bài học nằm trong bảng lessons.
+    // Học viên chỉ thấy section và activity đang hiển thị; người quản lý xem được cả nội dung ẩn.
     public List<LessonResponse> findLessons(Long courseId, Long sectionId, boolean canManage) {
         String visibilityFilter = canManage ? "" : " AND a.status = 'VISIBLE' AND s.status = 'VISIBLE'";
         return jdbcTemplate.query("""
@@ -128,6 +135,8 @@ public class LmsWorkflowRepository {
             String description,
             String content
     ) {
+        // Tạo activity trước để lấy ID, sau đó dùng ID đó làm khóa chính của lessons.
+        // LessonService gọi hàm này trong transaction để hai thao tác cùng thành công hoặc cùng rollback.
         Integer position = jdbcTemplate.queryForObject(
                 "SELECT COALESCE(MAX(position), 0) + 1 FROM activities WHERE section_id = ?",
                 Integer.class,
@@ -160,6 +169,7 @@ public class LmsWorkflowRepository {
             String description,
             String content
     ) {
+        // Điều kiện course/section/type bảo đảm ID bài học thuộc đúng vị trí cần sửa.
         int updated = jdbcTemplate.update("""
                 UPDATE activities a
                 JOIN course_sections s ON s.id = a.section_id
@@ -175,6 +185,7 @@ public class LmsWorkflowRepository {
     }
 
     public void hideLesson(Long courseId, Long sectionId, Long lessonId) {
+        // Ẩn thay vì xóa để giữ lịch sử và các liên kết tới activity.
         int updated = jdbcTemplate.update("""
                 UPDATE activities a
                 JOIN course_sections s ON s.id = a.section_id
@@ -188,6 +199,7 @@ public class LmsWorkflowRepository {
     }
 
     private LessonResponse findLesson(Long courseId, Long sectionId, Long lessonId, boolean canManage) {
+        // Dùng chung bộ lọc quyền hiển thị để bài học vừa tạo/sửa được đọc theo cùng quy tắc với danh sách.
         return findLessons(courseId, sectionId, canManage).stream()
                 .filter(lesson -> lesson.id().equals(lessonId))
                 .findFirst()
@@ -195,6 +207,7 @@ public class LmsWorkflowRepository {
     }
 
     public EnrollmentResponse enroll(Long courseId, Long userId) {
+        // Khóa chính ghép course_id + user_id chỉ cho phép một membership mỗi khóa.
         List<String> statuses = jdbcTemplate.query(
                 "SELECT status FROM course_memberships WHERE course_id = ? AND user_id = ?",
                 (resultSet, rowNumber) -> resultSet.getString("status"),
@@ -203,6 +216,7 @@ public class LmsWorkflowRepository {
         );
         if (!statuses.isEmpty()) {
             String status = statuses.get(0);
+            // Không tạo bản ghi trùng; chỉ cho ghi danh lại khi membership cũ đã rút khỏi khóa.
             if ("ACTIVE".equals(status)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Bạn đã ghi danh khóa học này");
             }
@@ -215,6 +229,7 @@ public class LmsWorkflowRepository {
                     WHERE course_id = ? AND user_id = ? AND status = 'WITHDRAWN'
                     """, courseId, userId);
         } else {
+            // Tra role theo code/scope thay vì giả định role_id cố định trong database.
             Integer roleCount = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM roles WHERE code = 'STUDENT' AND scope = 'COURSE'",
                     Integer.class
@@ -232,6 +247,7 @@ public class LmsWorkflowRepository {
     }
 
     private EnrollmentResponse findEnrollment(Long courseId, Long userId) {
+        // Đọc lại membership sau insert/update để response phản ánh trạng thái trong database.
         return jdbcTemplate.queryForObject("""
                 SELECT course_id, user_id, status, joined_at
                 FROM course_memberships WHERE course_id = ? AND user_id = ?
@@ -244,6 +260,7 @@ public class LmsWorkflowRepository {
     }
 
     public AnnouncementResponse createAnnouncement(Long courseId, Long authorId, String title, String content) {
+        // Đăng trực tiếp ở trạng thái PUBLISHED và lưu thời điểm để học viên có thể xem.
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
@@ -262,6 +279,7 @@ public class LmsWorkflowRepository {
     }
 
     public List<AnnouncementResponse> findAnnouncements(Long courseId, boolean canManage) {
+        // Người học chỉ xem thông báo đã đăng; người quản lý xem cả bản nháp nếu có.
         String visibilityFilter = canManage ? "" : " AND status = 'PUBLISHED'";
         return jdbcTemplate.query("""
                 SELECT id, course_id, author_id, title, content, status, published_at, updated_at
@@ -298,6 +316,7 @@ public class LmsWorkflowRepository {
     }
 
     private long requireGeneratedId(KeyHolder keyHolder) {
+        // INSERT phải trả khóa chính để liên kết bản ghi subtype hoặc dựng response.
         Number key = keyHolder.getKey();
         if (key == null) {
             throw new IllegalStateException("Database did not return a generated ID");
@@ -306,6 +325,7 @@ public class LmsWorkflowRepository {
     }
 
     private LocalDateTime toLocalDateTime(Timestamp timestamp) {
+        // published_at có thể null với thông báo nháp.
         return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 }

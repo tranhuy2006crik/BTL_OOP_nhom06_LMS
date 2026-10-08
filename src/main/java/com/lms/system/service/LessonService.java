@@ -1,14 +1,15 @@
 package com.lms.system.service;
 
-import com.lms.system.dto.LessonRequest;
-import com.lms.system.dto.LessonResponse;
-import com.lms.system.repository.LmsWorkflowRepository;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import com.lms.system.dto.LessonRequest;
+import com.lms.system.dto.LessonResponse;
+import com.lms.system.repository.LmsWorkflowRepository;
 
 @Service
 public class LessonService {
@@ -23,6 +24,7 @@ public class LessonService {
     public List<LessonResponse> list(Long courseId, Long sectionId, String email) {
         Long userId = repository.requireActiveUserId(email);
         boolean canManage = repository.canManageCourse(userId, courseId);
+        // Người xem phải là quản lý khóa hoặc học viên đang ghi danh; visibility được lọc trong repository.
         if (!canManage && !repository.isActiveStudent(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem nội dung khóa học");
         }
@@ -30,6 +32,7 @@ public class LessonService {
         return repository.findLessons(courseId, sectionId, canManage);
     }
 
+    // Ghi activity và phần nội dung lesson trong cùng transaction để không tạo dữ liệu thiếu một nửa.
     @Transactional
     public LessonResponse create(Long courseId, Long sectionId, LessonRequest request, String email) {
         Long userId = requireManager(courseId, email);
@@ -59,6 +62,7 @@ public class LessonService {
 
     private Long requireManager(Long courseId, String email) {
         Long userId = repository.requireActiveUserId(email);
+        // Kiểm tra quyền ở service để controller không phải chứa quy tắc nghiệp vụ.
         if (!repository.canManageCourse(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ giảng viên của khóa học mới được quản lý bài học");
         }

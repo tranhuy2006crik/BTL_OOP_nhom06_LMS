@@ -22,6 +22,7 @@ public class EnrollmentController {
         this.enrollmentService = enrollmentService;
     }
 
+    // Ghi danh tài khoản hiện tại vào khóa học; client không thể chọn userId để ghi danh hộ người khác.
     @PostMapping("/me")
     @ResponseStatus(HttpStatus.CREATED)
     public EnrollmentResponse enroll(
@@ -29,5 +30,5 @@ public class EnrollmentController {
             @AuthenticationPrincipal UserDetails user
     ) {
         return enrollmentService.enroll(courseId, user.getUsername());
-    }   
+    }
 }
