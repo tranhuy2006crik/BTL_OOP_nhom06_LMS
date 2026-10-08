@@ -99,12 +99,15 @@ public class ProfileController {
             return "profile/edit-profile";
         }
         try {
-            byte[] pictureBytes = profilePicture == null || profilePicture.isEmpty()
-                    ? null
-                    : profilePicture.getBytes();
-            String pictureContentType = profilePicture == null || profilePicture.isEmpty()
-                    ? null
-                    : profilePicture.getContentType();
+            byte[] pictureBytes;
+            String pictureContentType;
+            if (profilePicture == null || profilePicture.isEmpty()) {
+                pictureBytes = null;
+                pictureContentType = null;
+            } else {
+                pictureBytes = profilePicture.getBytes();
+                pictureContentType = profilePicture.getContentType();
+            }
             profileService.updateProfile(
                     currentUser.getId(),
                     profileForm,

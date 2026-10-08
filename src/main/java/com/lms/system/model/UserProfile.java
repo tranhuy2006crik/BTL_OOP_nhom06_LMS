@@ -123,8 +123,13 @@ public class UserProfile {
     }
 
     void updatePicture(byte[] picture, String contentType) {
-        profilePicture = picture == null ? null : Arrays.copyOf(picture, picture.length);
-        profilePictureContentType = picture == null ? null : contentType;
+        if (picture == null) {
+            profilePicture = null;
+            profilePictureContentType = null;
+        } else {
+            profilePicture = Arrays.copyOf(picture, picture.length);
+            profilePictureContentType = contentType;
+        }
     }
 
     UserProfileDetails details() {
@@ -153,7 +158,11 @@ public class UserProfile {
     }
 
     byte[] picture() {
-        return profilePicture == null ? null : Arrays.copyOf(profilePicture, profilePicture.length);
+        if (profilePicture == null) {
+            return null;
+        } else {
+            return Arrays.copyOf(profilePicture, profilePicture.length);
+        }
     }
 
     String pictureContentType() {

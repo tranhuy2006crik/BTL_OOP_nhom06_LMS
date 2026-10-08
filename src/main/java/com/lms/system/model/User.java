@@ -116,7 +116,11 @@ public class User {
     }
 
     private UserProfileDetails profileDetails() {
-        return profile == null ? EMPTY_PROFILE_DETAILS : profile.details();
+        if (profile == null) {
+            return EMPTY_PROFILE_DETAILS;
+        } else {
+            return profile.details();
+        }
     }
 
     public static void validateProfilePicture(byte[] picture, String contentType) {
@@ -134,6 +138,17 @@ public class User {
         }
         if (!hasher.matches(currentRawPassword, passwordHash)) {
             throw new InvalidPasswordException("Mật khẩu hiện tại không đúng");
+        }
+        validateRawPassword(newRawPassword);
+        if (hasher.matches(newRawPassword, passwordHash)) {
+            throw new InvalidPasswordException("Mật khẩu mới phải khác mật khẩu hiện tại");
+        }
+        this.passwordHash = hasher.hash(newRawPassword);
+    }
+
+    public void resetPassword(String newRawPassword, PasswordHasher hasher) {
+        if (hasher == null) {
+            throw new IllegalArgumentException("PasswordHasher is required");
         }
         validateRawPassword(newRawPassword);
         if (hasher.matches(newRawPassword, passwordHash)) {
@@ -320,11 +335,19 @@ public class User {
     }
 
     public byte[] getProfilePicture() {
-        return profile == null ? null : profile.picture();
+        if (profile == null) {
+            return null;
+        } else {
+            return profile.picture();
+        }
     }
 
     public String getProfilePictureContentType() {
-        return profile == null ? null : profile.pictureContentType();
+        if (profile == null) {
+            return null;
+        } else {
+            return profile.pictureContentType();
+        }
     }
 
     public UserStatus getStatus() {

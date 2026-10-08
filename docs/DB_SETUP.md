@@ -18,11 +18,12 @@ This fresh-install script does not alter existing tables. For an existing v1
 database, do not use it as a migration.
 
 For a database at schema v1, back it up and run
-`src/main/resources/db/mysql-upgrade-v1-to-v2.sql` once, then run
-`src/main/resources/db/mysql-upgrade-v2-to-v3.sql` once. For a database
-already at v2, run only `mysql-upgrade-v2-to-v3.sql`. Do not run an upgrade on
-a fresh schema or run the same upgrade more than once. The scripts preserve
-existing data and add columns and constraints. The v1-to-v2 upgrade assumes
+`src/main/resources/db/mysql-upgrade-v1-to-v2.sql`,
+then `src/main/resources/db/mysql-upgrade-v2-to-v3.sql`, each once. For a
+database already at v2, run only `mysql-upgrade-v2-to-v3.sql`. Do not run an
+upgrade on a fresh schema or run the same upgrade more than once. The scripts
+preserve existing data and add columns, tables, and constraints. The v1-to-v2
+upgrade assumes
 existing system-role assignments use `ADMIN` and course memberships use
 `TEACHER` or `STUDENT`; invalid role assignments can make that migration fail.
 The v2-to-v3 upgrade creates the one-to-one `user_profiles` table for optional
@@ -96,7 +97,14 @@ than hard-deleted, especially after submissions or grades exist.
    of at least 32 bytes. Generate one with `openssl rand -base64 32`, or leave
    it empty for a temporary key that changes on each application restart.
    `LMS_JWT_EXPIRATION_SECONDS` defaults to `3600`.
-4. Start Spring Boot with the project root as the working directory, so Spring
+4. Configure SMTP values in `.env` (`MAIL_HOST`, `MAIL_PORT`,
+   `MAIL_USERNAME`, `MAIL_PASSWORD`, and the authentication/TLS flags) and set
+   `MAIL_FROM` to a valid sender address. The sample defaults target a local
+   SMTP test server at `localhost:1025`; use your provider's values for actual
+   delivery. Set `LMS_BASE_URL` to the public URL used in reset links.
+   Password reset tokens are held in application memory, so they are lost if
+   the app restarts and will not be shared across multiple app instances.
+5. Start Spring Boot with the project root as the working directory, so Spring
    can find `.env`. Hibernate uses `validate`: it checks that Java entities
    match the SQL schema and does not create or modify database tables.
 

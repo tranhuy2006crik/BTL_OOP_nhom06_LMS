@@ -67,6 +67,12 @@ public class DashboardService {
     public List<TimelineActivity> timeline(String filter, String query, String sort) {
         String normalizedQuery = query.toLowerCase(Locale.ROOT);
         LocalDate today = LocalDate.now();
+        Comparator<TimelineActivity> timelineComparator;
+        if ("latest".equals(sort)) {
+            timelineComparator = Comparator.comparing(TimelineActivity::dueDate).reversed();
+        } else {
+            timelineComparator = Comparator.comparing(TimelineActivity::dueDate);
+        }
         return SAMPLE_ACTIVITIES.stream()
                 .filter(activity -> switch (filter) {
                     case "upcoming" -> !activity.dueDate().isBefore(today);
@@ -76,9 +82,7 @@ public class DashboardService {
                 .filter(activity -> normalizedQuery.isEmpty()
                         || activity.title().toLowerCase(Locale.ROOT).contains(normalizedQuery)
                         || activity.courseLabel().toLowerCase(Locale.ROOT).contains(normalizedQuery))
-                .sorted("latest".equals(sort)
-                        ? Comparator.comparing(TimelineActivity::dueDate).reversed()
-                        : Comparator.comparing(TimelineActivity::dueDate))
+                .sorted(timelineComparator)
                 .toList();
     }
 

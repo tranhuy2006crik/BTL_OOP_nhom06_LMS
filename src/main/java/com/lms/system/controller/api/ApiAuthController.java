@@ -66,10 +66,16 @@ public class ApiAuthController {
     @GetMapping("/me")
     public ApiCurrentUserResponse currentUser(@AuthenticationPrincipal Jwt jwt) {
         List<String> roles = jwt.getClaimAsStringList("roles");
+        List<String> currentRoles;
+        if (roles == null) {
+            currentRoles = List.of();
+        } else {
+            currentRoles = roles;
+        }
         return new ApiCurrentUserResponse(
                 jwt.getClaim("userId"),
                 jwt.getSubject(),
-                roles == null ? List.of() : roles
+                currentRoles
         );
     }
 }

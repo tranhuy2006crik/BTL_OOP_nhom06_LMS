@@ -123,8 +123,19 @@ public class ProfileForm {
         if (firstName == null && lastName == null) {
             return fullName;
         }
-        return ((firstName == null ? "" : firstName.trim()) + " "
-                + (lastName == null ? "" : lastName.trim())).trim();
+        String normalizedFirstName;
+        if (firstName == null) {
+            normalizedFirstName = "";
+        } else {
+            normalizedFirstName = firstName.trim();
+        }
+        String normalizedLastName;
+        if (lastName == null) {
+            normalizedLastName = "";
+        } else {
+            normalizedLastName = lastName.trim();
+        }
+        return (normalizedFirstName + " " + normalizedLastName).trim();
     }
 
     public void setFullName(String fullName) {

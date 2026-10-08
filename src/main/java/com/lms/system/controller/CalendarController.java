@@ -45,9 +45,16 @@ public class CalendarController {
         }
 
         YearMonth selectedMonth = parseMonth(month);
-        int selectedDay = day == null
-                ? (selectedMonth.equals(YearMonth.now()) ? LocalDate.now().getDayOfMonth() : 1)
-                : day;
+        int selectedDay;
+        if (day == null) {
+            if (selectedMonth.equals(YearMonth.now())) {
+                selectedDay = LocalDate.now().getDayOfMonth();
+            } else {
+                selectedDay = 1;
+            }
+        } else {
+            selectedDay = day;
+        }
         if (selectedDay < 1 || selectedDay > selectedMonth.lengthOfMonth()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected day is outside the chosen month");
         }
