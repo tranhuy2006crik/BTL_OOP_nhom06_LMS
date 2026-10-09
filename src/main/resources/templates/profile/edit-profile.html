@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Edit profile - PTIT Learn</title>
+<main class="page profile-edit-page">
+    <nav class="profile-breadcrumbs" aria-label="Breadcrumb">
+        <a th:href="@{/profile(theme=${theme})}">Profile</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Edit profile</span>
+    </nav>
+
+    <header class="profile-edit-heading">
+        <img class="profile-avatar" th:if="${user.profilePicture != null}"
+             th:src="@{/profile/picture}" th:alt="${user.pictureDescription}">
+        <span class="profile-avatar" th:unless="${user.profilePicture != null}" aria-hidden="true"
+              th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+        <div>
+            <p class="page-kicker">PREFERENCES / EDIT PROFILE</p>
+            <h1 th:text="${user.fullName}">Learner name</h1>
+        </div>
+    </header>
+
+    <h2 class="profile-edit-title">Edit profile</h2>
+
+    <form class="profile-edit-form" th:action="@{/profile}" th:object="${profileForm}"
+          method="post" enctype="multipart/form-data">
+        <input type="hidden" name="theme" th:value="${theme}">
+        <div th:if="${#fields.hasErrors()}" class="alert alert-error">
+            <p th:each="err : ${#fields.allErrors()}" th:text="${err}"></p>
+        </div>
+
+        <details class="profile-edit-section" open>
+            <summary>General</summary>
+            <div class="profile-edit-fields">
+                <label for="firstName">First name <span class="required-mark" aria-hidden="true">*</span></label>
+                <input id="firstName" type="text" th:field="*{firstName}" autocomplete="given-name" required>
+                <div class="profile-edit-hint"></div>
+                <label for="lastName">Last name</label>
+                <input id="lastName" type="text" th:field="*{lastName}" autocomplete="family-name">
+                <div class="profile-edit-hint"></div>
+                <div class="profile-edit-control-error" th:if="${#fields.hasErrors('fullName')}"
+                     th:errors="*{fullName}"></div>
+
+                <label for="emailAddress">Email address</label>
+                <input id="emailAddress" type="email" th:value="${user.email}" readonly>
+                <div class="profile-edit-hint">Email is used to sign in and cannot be changed here.</div>
+
+                <label for="emailVisibility">Email visibility</label>
+                <select id="emailVisibility" th:field="*{emailVisibility}">
+                    <option value="COURSE_PARTICIPANTS">Visible to course participants</option>
+                    <option value="HIDDEN">Hidden from other users</option>
+                </select>
+                <div class="profile-edit-hint"></div>
+
+                <label for="city">City/town</label>
+                <input id="city" type="text" th:field="*{cityTown}">
+                <div class="profile-edit-hint"></div>
+
+                <label for="country">Select a country</label>
+                <input id="country" type="text" th:field="*{country}" autocomplete="country-name">
+                <div class="profile-edit-hint"></div>
+
+                <label for="timezone">Timezone</label>
+                <input id="timezone" type="text" th:field="*{timezone}" placeholder="e.g. Asia/Ho_Chi_Minh">
+                <div class="profile-edit-hint"></div>
+
+                <label for="preferredTheme">Preferred theme</label>
+                <select id="preferredTheme" th:field="*{preferredTheme}">
+                    <option value="DEFAULT">Default</option>
+                    <option value="LIGHT">Light</option>
+                    <option value="DARK">Dark</option>
+                </select>
+                <div class="profile-edit-hint">Saved as a profile preference; theme behavior can be connected later.</div>
+
+                <label for="description">Description</label>
+                <textarea class="profile-edit-textarea" id="description" th:field="*{description}" rows="5"></textarea>
+                <div class="profile-edit-hint"></div>
+            </div>
+        </details>
+
+        <details class="profile-edit-section">
+            <summary>User picture</summary>
+            <div class="profile-picture-fields">
+                <span>Current picture</span>
+                <img class="profile-picture-preview" th:if="${user.profilePicture != null}"
+                     th:src="@{/profile/picture}" th:alt="${user.pictureDescription}">
+                <span class="profile-avatar profile-picture-preview" th:unless="${user.profilePicture != null}"
+                      aria-hidden="true" th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+                <span th:if="${user.profilePicture != null}">Delete picture</span>
+                <label class="profile-picture-delete" th:if="${user.profilePicture != null}">
+                    <input th:if="${user.profilePicture != null}" type="checkbox"
+                           name="deleteProfilePicture" value="true">
+                    <span th:if="${user.profilePicture != null}">Remove the current picture</span>
+                </label>
+                <span>New picture</span>
+                <div>
+                    <input type="file" name="profilePicture" accept="image/jpeg,image/png,image/gif">
+                    <p class="profile-edit-hint">JPEG, PNG, or GIF; maximum size 2 MB. Submit the profile form to save.</p>
+                </div>
+                <span>Picture description</span>
+                <input type="text" th:field="*{pictureDescription}" placeholder="Describe your picture">
+            </div>
+        </details>
+
+        <details class="profile-edit-section">
+            <summary>Additional names</summary>
+            <div class="profile-edit-fields profile-edit-additional-fields">
+                <label for="firstNamePhonetic">First name - phonetic</label>
+                <input id="firstNamePhonetic" type="text" th:field="*{firstNamePhonetic}">
+                <label for="lastNamePhonetic">Last name - phonetic</label>
+                <input id="lastNamePhonetic" type="text" th:field="*{lastNamePhonetic}">
+                <label for="middleName">Middle name</label>
+                <input id="middleName" type="text" th:field="*{middleName}">
+                <label for="alternateName">Alternate name</label>
+                <input id="alternateName" type="text" th:field="*{alternateName}">
+            </div>
+        </details>
+
+        <details class="profile-edit-section">
+            <summary>Interests</summary>
+            <div class="profile-edit-fields profile-edit-additional-fields">
+                <label for="interests">List of interests</label>
+                <input id="interests" type="text" th:field="*{interests}" placeholder="e.g. music, horses, films">
+                <p>Separate interests with commas.</p>
+            </div>
+        </details>
+
+        <details class="profile-edit-section">
+            <summary>Optional</summary>
+            <div class="profile-edit-fields profile-edit-additional-fields">
+                <label for="idNumber">ID number</label>
+                <input id="idNumber" type="text" th:field="*{idNumber}">
+                <label for="institution">Institution</label>
+                <input id="institution" type="text" th:field="*{institution}">
+                <label for="department">Department</label>
+                <input id="department" type="text" th:field="*{department}">
+                <label for="phone">Phone</label>
+                <input id="phone" type="tel" th:field="*{phone}">
+                <label for="mobilePhone">Mobile phone</label>
+                <input id="mobilePhone" type="tel" th:field="*{mobilePhone}">
+                <label for="address">Address</label>
+                <input id="address" type="text" th:field="*{address}">
+            </div>
+        </details>
+
+        <details class="profile-edit-section">
+            <summary>Other fields</summary>
+            <div class="profile-edit-fields profile-edit-additional-fields">
+                <label for="website">Website</label>
+                <input id="website" type="url" th:field="*{website}">
+                <label for="skype">Skype ID</label>
+                <input id="skype" type="text" th:field="*{skypeId}">
+            </div>
+        </details>
+
+        <div class="profile-edit-actions">
+            <button class="profile-update-button" type="submit">Update profile</button>
+            <a class="profile-cancel-button" th:href="@{/profile(theme=${theme})}">Cancel</a>
+        </div>
+    </form>
+
+    <section class="profile-password-section" aria-labelledby="password-heading">
+        <div>
+            <div th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></div>
+            <p class="page-kicker">SECURITY</p>
+            <h2 id="password-heading">Change password</h2>
+            <p>Update your account password. Your current password is required.</p>
+        </div>
+        <form th:action="@{/profile/password}" th:object="${changePasswordForm}" method="post">
+            <input type="hidden" name="theme" th:value="${theme}">
+            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+                <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+            </div>
+            <label for="currentPassword">Current password</label>
+            <input id="currentPassword" type="password" th:field="*{currentPassword}" autocomplete="current-password">
+
+            <label for="newPassword">New password</label>
+            <input id="newPassword" type="password" th:field="*{newPassword}" autocomplete="new-password">
+            <div class="muted" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+
+            <label for="confirmNewPassword">Confirm new password</label>
+            <input id="confirmNewPassword" type="password" th:field="*{confirmNewPassword}" autocomplete="new-password">
+            <button class="profile-update-button" type="submit">Change password</button>
+        </form>
+    </section>
+</main>
+</html>
