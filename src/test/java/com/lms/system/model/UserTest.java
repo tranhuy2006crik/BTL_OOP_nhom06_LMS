@@ -67,13 +67,4 @@ class UserTest {
         assertTrue(hasher.matches("newpass99", user.getPasswordHash()));
     }
 
-    @Test
-    void resetPasswordChecksStrengthAndMustDifferFromCurrentPassword() {
-        User user = User.register("a@mail.com", "A", "hashed:secret12");
-        assertThrows(InvalidPasswordException.class, () -> user.resetPassword("weak", hasher));
-        assertThrows(InvalidPasswordException.class, () -> user.resetPassword("secret12", hasher));
-
-        user.resetPassword("newpass99", hasher);
-        assertTrue(hasher.matches("newpass99", user.getPasswordHash()));
-    }
 }

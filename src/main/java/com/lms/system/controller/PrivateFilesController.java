@@ -66,7 +66,7 @@ public class PrivateFilesController {
         }
         return switch (notice) {
             case "grades" -> "Grades will be available when course grading is enabled.";
-            case "messages" -> "Messaging will be available in a future update.";
+            case "messages" -> "Use the Messages page to contact active users.";
             case "private-files" -> "Private files will be available when private storage is connected.";
             case "reports" -> "Reports will be available in a future update.";
             case "preferences" -> "Preferences will be available in a future update.";

@@ -19,17 +19,30 @@ database, do not use it as a migration.
 
 For a database at schema v1, back it up and run
 `src/main/resources/db/mysql-upgrade-v1-to-v2.sql`,
-then `src/main/resources/db/mysql-upgrade-v2-to-v3.sql`, each once. For a
-database already at v2, run only `mysql-upgrade-v2-to-v3.sql`. Do not run an
-upgrade on a fresh schema or run the same upgrade more than once. The scripts
-preserve existing data and add columns, tables, and constraints. The v1-to-v2
-upgrade assumes
+then `src/main/resources/db/mysql-upgrade-v2-to-v3.sql`, then
+`src/main/resources/db/mysql-upgrade-v3-to-v4.sql`, then
+`src/main/resources/db/mysql-upgrade-v4-to-v5.sql`, each once. For a database
+already at v2, run the v2-to-v3, v3-to-v4, and v4-to-v5 scripts; for v3, run
+the v3-to-v4 and v4-to-v5 scripts; for v4, run only the v4-to-v5 script. Do
+not run an upgrade on a fresh schema or run the same
+upgrade more than once. The scripts preserve existing data and add columns,
+tables, and constraints. The v1-to-v2 upgrade assumes
 existing system-role assignments use `ADMIN` and course memberships use
 `TEACHER` or `STUDENT`; invalid role assignments can make that migration fail.
 The v2-to-v3 upgrade creates the one-to-one `user_profiles` table for optional
 profile fields and profile pictures, keeping account credentials and status in
 the smaller `users` table. The application validates profile pictures as
 JPEG, PNG, or GIF up to 2 MB.
+The v3-to-v4 upgrade creates private one-to-one conversations and text messages.
+Users can message any active account; conversation membership is enforced by
+the application when opening a thread or sending a message. Messages are limited
+to 2,000 characters. The Messages page uses authenticated STOMP over the
+same-origin `/ws` WebSocket endpoint for live delivery, while HTTP remains the
+history-loading and no-WebSocket fallback path. The in-memory simple broker is
+intended for a single application instance; a multi-instance deployment needs
+a shared external message broker.
+The v4-to-v5 upgrade adds per-user conversation stars. Each user can star or
+unstar their own conversations without changing what other participants see.
 The database cannot validate that each `ACTIVITIES` row has exactly one
 matching subtype row, so the service layer must maintain that invariant.
 
@@ -97,14 +110,7 @@ than hard-deleted, especially after submissions or grades exist.
    of at least 32 bytes. Generate one with `openssl rand -base64 32`, or leave
    it empty for a temporary key that changes on each application restart.
    `LMS_JWT_EXPIRATION_SECONDS` defaults to `3600`.
-4. Configure SMTP values in `.env` (`MAIL_HOST`, `MAIL_PORT`,
-   `MAIL_USERNAME`, `MAIL_PASSWORD`, and the authentication/TLS flags) and set
-   `MAIL_FROM` to a valid sender address. The sample defaults target a local
-   SMTP test server at `localhost:1025`; use your provider's values for actual
-   delivery. Set `LMS_BASE_URL` to the public URL used in reset links.
-   Password reset tokens are held in application memory, so they are lost if
-   the app restarts and will not be shared across multiple app instances.
-5. Start Spring Boot with the project root as the working directory, so Spring
+4. Start Spring Boot with the project root as the working directory, so Spring
    can find `.env`. Hibernate uses `validate`: it checks that Java entities
    match the SQL schema and does not create or modify database tables.
 

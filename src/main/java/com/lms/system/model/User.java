@@ -146,17 +146,6 @@ public class User {
         this.passwordHash = hasher.hash(newRawPassword);
     }
 
-    public void resetPassword(String newRawPassword, PasswordHasher hasher) {
-        if (hasher == null) {
-            throw new IllegalArgumentException("PasswordHasher is required");
-        }
-        validateRawPassword(newRawPassword);
-        if (hasher.matches(newRawPassword, passwordHash)) {
-            throw new InvalidPasswordException("Mật khẩu mới phải khác mật khẩu hiện tại");
-        }
-        this.passwordHash = hasher.hash(newRawPassword);
-    }
-
     public boolean hasPermission(Permission permission, Long courseId) {
         if (!canLogin() || permission == null) {
             return false;

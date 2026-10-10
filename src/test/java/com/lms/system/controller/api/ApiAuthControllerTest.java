@@ -303,7 +303,7 @@ class ApiAuthControllerTest {
         mockMvc.perform(get("/private-files").session(session).param("notice", "messages"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(
-                        "Messaging will be available in a future update."
+                        "Use the Messages page to contact active users."
                 )));
         mockMvc.perform(get("/private-files").session(session).param("view", "invalid"))
                 .andExpect(status().isBadRequest());
@@ -325,7 +325,7 @@ class ApiAuthControllerTest {
         mockMvc.perform(get("/messages").session(session).param("view", "contacts").param("theme", "dark"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-theme=\"dark\"")))
-                .andExpect(content().string(containsString("No contacts yet.")));
+                .andExpect(content().string(containsString("Start a conversation")));
         mockMvc.perform(get("/messages").session(session).param("view", "invalid"))
                 .andExpect(status().isBadRequest());
 
