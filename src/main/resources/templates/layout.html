@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:replace="${title}">LMS</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand-box">
+        <span class="brand-mark">L</span>
+        <div>
+            <div class="brand-name">PTIT LEARN</div>
+            <small>Learning management system</small>
+        </div>
+    </div>
+
+    <nav class="main-nav" aria-label="Main navigation">
+        <a th:href="@{/home}">Home</a>
+        <a th:href="@{/courses/1/sections/1}">Courses</a>
+        <a th:href="@{/profile}">Profile</a>
+    </nav>
+</header>
+
+<main class="page-shell" th:replace="${content}"></main>
+</body>
+</html>

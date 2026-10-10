@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Course content</title>
+
+<main class="course-page">
+    <section class="course-hero">
+        <div>
+            <p class="eyebrow">Course overview</p>
+            <h1>Lesson and announcement page</h1>
+        </div>
+        <div class="course-badge">
+            <span>Course</span>
+            <strong th:text="${courseId}">#</strong>
+        </div>
+    </section>
+
+    <div class="content-grid">
+        <aside class="left-panel">
+            <div class="panel-block">
+                <h3>Announcements</h3>
+
+                <div th:if="${#lists.isEmpty(announcements)}" class="empty-state">
+                    No announcement yet.
+                </div>
+
+                <article class="announcement-item" th:each="announcement : ${announcements}">
+                    <div class="meta-row">
+                        <span class="status-tag" th:text="${announcement.status}">PUBLISHED</span>
+                        <span th:text="${#temporals.format(announcement.publishedAt, 'dd/MM/yyyy HH:mm')}">date</span>
+                    </div>
+                    <h4 th:text="${announcement.title}">Announcement title</h4>
+                    <p th:text="${announcement.content}">Content</p>
+                </article>
+            </div>
+        </aside>
+
+        <section class="main-panel">
+            <div class="section-head">
+                <h2>Section content</h2>
+                <span class="section-id" th:text="'Section ' + ${sectionId}">Section</span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(lessons)}" class="empty-state large">
+                This section has no lesson yet.
+            </div>
+
+            <article class="lesson-card" th:each="lesson : ${lessons}">
+                <div class="lesson-topbar">
+                    <span class="status-tag" th:text="${lesson.status}">VISIBLE</span>
+                    <span class="lesson-position" th:text="'Lesson ' + ${lesson.position}">Lesson 1</span>
+                </div>
+
+                <h3 th:text="${lesson.title}">Lesson title</h3>
+                <p class="lesson-description" th:text="${lesson.description}">Description</p>
+
+                <div class="lesson-content" th:utext="${lesson.content}"></div>
+            </article>
+        </section>
+    </div>
+</main>
+</html>
