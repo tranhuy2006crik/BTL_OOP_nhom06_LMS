@@ -1,38 +1,23 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
-<<<<<<< HEAD
-<title>My courses - PTIT Learn</title>
-<main class="page courses-page" id="page-top">
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+>
+  <title>My courses - PTIT Learn</title>
+  <main class="page courses-page" id="page-top">
     <div class="courses-heading">
-        <div>
-            <p class="page-kicker">YOUR LEARNING SPACE</p>
-            <h1>My courses</h1>
-        </div>
-        <p class="welcome-user">Welcome, <strong th:text="${user.fullName}">Learner</strong></p>
+      <div>
+        <p class="page-kicker">YOUR LEARNING SPACE</p>
+        <h1>My courses</h1>
+      </div>
+      <p class="welcome-user">
+        Welcome, <strong th:text="${user.fullName}">Learner</strong>
+      </p>
     </div>
 
-    <section th:replace="~{fragments/course-overview :: overview(
-            ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/home')}">
-    </section>
-=======
-<title>PTIT Learn - Không gian học tập</title>
-
-<main class="home-entry">
-    <section class="home-intro">
-        <p class="eyebrow">KHÔNG GIAN HỌC TẬP</p>
-        <h1>Chào mừng đến với PTIT Learn</h1>
-        <p>Truy cập bài học và thông báo trong khóa học của bạn.</p>
-    </section>
-
-    <form id="course-entry" class="course-entry-form" method="get" th:action="@{/courses/open}">
-        <label for="courseId">Mã khóa học</label>
-        <input id="courseId" name="courseId" type="number" min="1" placeholder="Ví dụ: 1" required>
-
-        <label for="sectionId">Mã chương</label>
-        <input id="sectionId" name="sectionId" type="number" min="1" placeholder="Ví dụ: 1" required>
-
-        <button type="submit">Mở nội dung học</button>
-    </form>
->>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0
-</main>
+    <section
+      th:replace="~{fragments/course-overview :: overview(
+            ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/home')}"
+    ></section>
+  </main>
 </html>

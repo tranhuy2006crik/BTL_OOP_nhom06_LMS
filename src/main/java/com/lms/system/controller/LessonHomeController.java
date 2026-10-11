@@ -5,11 +5,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class LessonHomeController {
 
-    @GetMapping("/")
-    public String home() {
-        return "home";
-    }
-
     @GetMapping("/courses/open")
     public String openCourse(
             @RequestParam Long courseId,

@@ -1,96 +1,120 @@
-<!DOCTYPE html>
-<<<<<<< HEAD
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:fragment="layout(title, content)">
-=======
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
->>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:fragment="layout(title, content)"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title th:replace="${title}">LMS</title>
-    <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<<<<<<< HEAD
-<body th:attr="data-theme=${theme}">
-<header class="topbar" th:if="${user != null}">
-    <a class="brand" th:href="@{/home}" aria-label="LMS PTIT home">
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+  </head>
+  <body th:attr="data-theme=${theme}">
+    <header class="topbar" th:if="${user != null}">
+      <a class="brand" th:href="@{/home}" aria-label="LMS PTIT home">
         <span class="brand-mark" aria-hidden="true">L</span>
         <span class="brand-name">PTIT <span>LEARN</span></span>
-    </a>
-    <nav class="primary-nav" aria-label="Main navigation">
-        <a th:classappend="${dashboardEnabled} ? ' nav-current' : ''"
-           th:attr="aria-current=${dashboardEnabled} ? 'page' : null"
-           th:href="@{/dashboard}">Dashboard</a>
-        <a th:classappend="${courseOverviewEnabled} ? ' nav-current' : ''"
-           th:attr="aria-current=${courseOverviewEnabled} ? 'page' : null"
-           th:href="@{/home#course-overview}">My courses</a>
-        <a sec:authorize="hasRole('ADMIN')"
-           th:classappend="${adminPageEnabled} ? ' nav-current' : ''"
-           th:attr="aria-current=${adminPageEnabled} ? 'page' : null"
-           th:href="@{/admin}">Administration</a>
-    </nav>
-    <div class="header-actions">
-        <form class="header-search" th:if="${courseSearchEnabled}" th:action="@{/home}" method="get">
-            <span aria-hidden="true">⌕</span>
-            <input id="header-course-search" type="search" name="q" th:value="${query}" placeholder="Search" aria-label="Search courses">
-            <input type="hidden" name="status" th:value="${status}">
-            <input type="hidden" name="sort" th:value="${sort}">
-            <input type="hidden" name="view" th:value="${view}">
-            <input type="hidden" name="theme" th:value="${theme}">
+      </a>
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a
+          th:classappend="${dashboardEnabled} ? ' nav-current' : ''"
+          th:attr="aria-current=${dashboardEnabled} ? 'page' : null"
+          th:href="@{/dashboard}"
+          >Dashboard</a
+        >
+        <a
+          th:classappend="${courseOverviewEnabled} ? ' nav-current' : ''"
+          th:attr="aria-current=${courseOverviewEnabled} ? 'page' : null"
+          th:href="@{/home#course-overview}"
+          >My courses</a
+        >
+        <a
+          sec:authorize="hasRole('ADMIN')"
+          th:classappend="${adminPageEnabled} ? ' nav-current' : ''"
+          th:attr="aria-current=${adminPageEnabled} ? 'page' : null"
+          th:href="@{/admin}"
+          >Administration</a
+        >
+      </nav>
+      <div class="header-actions">
+        <form
+          class="header-search"
+          th:if="${courseSearchEnabled}"
+          th:action="@{/home}"
+          method="get"
+        >
+          <span aria-hidden="true">⌕</span>
+          <input
+            id="header-course-search"
+            type="search"
+            name="q"
+            th:value="${query}"
+            placeholder="Search"
+            aria-label="Search courses"
+          />
+          <input type="hidden" name="status" th:value="${status}" />
+          <input type="hidden" name="sort" th:value="${sort}" />
+          <input type="hidden" name="view" th:value="${view}" />
+          <input type="hidden" name="theme" th:value="${theme}" />
         </form>
-        <a class="icon-button theme-toggle"
-           th:href="@{${pagePath}(theme=${theme == 'dark' ? 'light' : 'dark'}, status=${status}, q=${query},
+        <a
+          class="icon-button theme-toggle"
+          th:href="@{${pagePath}(theme=${theme == 'dark' ? 'light' : 'dark'}, status=${status}, q=${query},
                     sort=${sort}, view=${view}, month=${calendarMonth}, day=${selectedDay}, visible=${visibleCategoryCodes})}"
-           aria-label="Toggle color theme" title="Toggle color theme"
-           th:text="${theme == 'dark' ? '☀' : '◐'}">◐</a>
-        <a class="icon-button notification-toggle" th:href="@{${pagePath}(notice='notifications')}" aria-label="Notifications" title="Notifications">♧</a>
-        <a class="icon-button message-toggle" th:href="@{/messages}" aria-label="Messages" title="Messages">▱</a>
+          aria-label="Toggle color theme"
+          title="Toggle color theme"
+          th:text="${theme == 'dark' ? '☀' : '◐'}"
+          >◐</a
+        >
+        <a
+          class="icon-button notification-toggle"
+          th:href="@{${pagePath}(notice='notifications')}"
+          aria-label="Notifications"
+          title="Notifications"
+          >♧</a
+        >
+        <a
+          class="icon-button message-toggle"
+          th:href="@{/messages}"
+          aria-label="Messages"
+          title="Messages"
+          >▱</a
+        >
         <details class="account-menu">
-            <summary class="account-toggle">
-                <span class="avatar" th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
-                <span class="account-name" th:text="${user.fullName}">User</span>
-                <span class="menu-chevron" aria-hidden="true">⌄</span>
-            </summary>
-            <div class="account-dropdown">
-                <p class="dropdown-user" th:text="${user.fullName}">User</p>
-                <a th:href="@{/profile}">Profile</a>
-                <a th:href="@{${pagePath}(notice='grades')}">Grades</a>
-                <a th:href="@{/calendar}">Calendar</a>
-                <a th:href="@{/messages}">Messages</a>
-                <a th:href="@{/private-files}">Private files</a>
-                <a th:href="@{${pagePath}(notice='reports')}">Reports</a>
-                <span class="dropdown-divider"></span>
-                <a th:href="@{${pagePath}(notice='preferences')}">Preferences</a>
-                <a th:href="@{${pagePath}(notice='language')}">Language</a>
-                <form th:action="@{/logout}" method="post">
-                    <button class="dropdown-logout" type="submit">Log out</button>
-                </form>
-            </div>
+          <summary class="account-toggle">
+            <span
+              class="avatar"
+              th:text="${#strings.substring(user.fullName, 0, 1)}"
+              >U</span
+            >
+            <span class="account-name" th:text="${user.fullName}">User</span>
+            <span class="menu-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="account-dropdown">
+            <p class="dropdown-user" th:text="${user.fullName}">User</p>
+            <a th:href="@{/profile}">Profile</a>
+            <a th:href="@{${pagePath}(notice='grades')}">Grades</a>
+            <a th:href="@{/calendar}">Calendar</a>
+            <a th:href="@{/messages}">Messages</a>
+            <a th:href="@{/private-files}">Private files</a>
+            <a th:href="@{${pagePath}(notice='reports')}">Reports</a>
+            <span class="dropdown-divider"></span>
+            <a th:href="@{${pagePath}(notice='preferences')}">Preferences</a>
+            <a th:href="@{${pagePath}(notice='language')}">Language</a>
+            <form th:action="@{/logout}" method="post">
+              <button class="dropdown-logout" type="submit">Log out</button>
+            </form>
+          </div>
         </details>
-    </div>
-</header>
-<div class="header-notice" th:if="${noticeMessage != null}" role="status" th:text="${noticeMessage}"></div>
-<main class="page" th:replace="${content}"></main>
-=======
-<body>
-<header class="topbar">
-    <a class="brand-box brand-link" th:href="@{/}" aria-label="PTIT Learn - Trang chủ">
-        <span class="brand-mark">L</span>
-        <div>
-            <div class="brand-name">PTIT LEARN</div>
-            <small>Hệ thống quản lý học tập</small>
-        </div>
-    </a>
-
-    <nav class="main-nav" aria-label="Điều hướng chính">
-        <a th:href="@{/}">Trang chủ</a>
-        <a th:href="@{/#course-entry}">Mở khóa học</a>
-    </nav>
-</header>
-
-<main class="page-shell" th:replace="${content}"></main>
->>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0
-</body>
+      </div>
+    </header>
+    <div
+      class="header-notice"
+      th:if="${noticeMessage != null}"
+      role="status"
+      th:text="${noticeMessage}"
+    ></div>
+    <main class="page" th:replace="${content}"></main>
+  </body>
 </html>

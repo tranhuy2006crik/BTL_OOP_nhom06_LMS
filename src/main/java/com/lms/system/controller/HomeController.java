@@ -1,6 +1,5 @@
 package com.lms.system.controller;
 
-<<<<<<< HEAD
 import com.lms.system.model.User;
 import com.lms.system.security.AuthenticatedUser;
 import com.lms.system.service.CourseCatalogService;
@@ -14,16 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Set;
-=======
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
->>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0
 
 @Controller
 public class HomeController {
 
-<<<<<<< HEAD
     private final ProfileService profileService;
     private final CourseCatalogService courseCatalogService;
 
@@ -99,18 +92,4 @@ public class HomeController {
         };
     }
 
-=======
-    @GetMapping("/")
-    public String home() {
-        return "home";
-    }
-
-    @GetMapping("/courses/open")
-    public String openCourse(
-            @RequestParam Long courseId,
-            @RequestParam Long sectionId
-    ) {
-        return "redirect:/courses/" + courseId + "/sections/" + sectionId;
-    }
->>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0
 }
