@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::body})}">
+<head>
+    <title>Assignments</title>
+</head>
+<body>
+<section class="stacked-panel">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Course work</p>
+            <h1 th:text="${course.title} + ' / Assignments'">Assignments</h1>
+        </div>
+    </div>
+
+    <div class="card-grid two-column">
+        <section class="card">
+            <h2>Create assignment</h2>
+            <form th:action="@{'/courses/' + ${course.id} + '/assignments'}" method="post">
+                <label>Title
+                    <input type="text" name="title" required>
+                </label>
+                <label>Description
+                    <textarea name="description" rows="4"></textarea>
+                </label>
+                <label>Instructions
+                    <textarea name="instructions" rows="4"></textarea>
+                </label>
+                <label>Due date
+                    <input type="datetime-local" name="dueAt" required>
+                </label>
+                <label>Max score
+                    <input type="number" name="maxScore" min="1" value="100">
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="allowLate" value="true">
+                    <span>Allows late submission</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="published" value="true" checked>
+                    <span>Publish immediately</span>
+                </label>
+                <button type="submit" class="primary-button">Save assignment</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Course materials</h2>
+            <form th:action="@{'/courses/' + ${course.id} + '/materials'}" method="post" enctype="multipart/form-data">
+                <label>Title
+                    <input type="text" name="title" required>
+                </label>
+                <label>Description
+                    <textarea name="description" rows="3"></textarea>
+                </label>
+                <label>File
+                    <input type="file" name="file" required>
+                </label>
+                <button type="submit" class="primary-button">Upload material</button>
+            </form>
+
+            <ul class="resource-list" th:if="${materials != null and !materials.isEmpty()}">
+                <li th:each="material : ${materials}">
+                    <span th:text="${material.title}">Material</span>
+                    <a th:href="@{'/courses/' + ${course.id} + '/materials/' + ${material.id} + '/download'}">Download</a>
+                </li>
+            </ul>
+            <p th:if="${materials == null or materials.isEmpty()}">No course materials uploaded yet.</p>
+        </section>
+    </div>
+
+    <section class="card">
+        <h2>Assignments</h2>
+        <div class="assignment-list" th:if="${assignments != null and !assignments.isEmpty()}">
+            <article class="assignment-item" th:each="assignment : ${assignments}">
+                <div>
+                    <h3><a th:href="@{'/courses/' + ${course.id} + '/assignments/' + ${assignment.id}}" th:text="${assignment.title}">Assignment</a></h3>
+                    <p th:text="${assignment.description} ?: 'No description'">Description</p>
+                </div>
+                <div class="assignment-meta">
+                    <span>Due: <strong th:text="${#temporals.format(assignment.dueAt, 'dd/MM/yyyy HH:mm')}">Due</strong></span>
+                    <span>Max score: <strong th:text="${assignment.maxScore}">100</strong></span>
+                    <span th:if="${assignment.allowLate}">Late allowed</span>
+                </div>
+            </article>
+        </div>
+        <p th:if="${assignments == null or assignments.isEmpty()}">No assignments have been published yet.</p>
+    </section>
+</section>
+</body>
+</html>

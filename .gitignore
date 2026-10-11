@@ -33,7 +33,14 @@ build/
 .vscode/
 -
 application.properties
+<<<<<<< HEAD
 .env
+=======
+<<<<<<< HEAD
+>>>>>>> 95be6b5b82d62eb9ee4ac4a0bc4e50509e1e2563
 
 .env
 
+=======
+.env
+>>>>>>> 3cad5bcce9a90f7886a590b097848fb294c412d0

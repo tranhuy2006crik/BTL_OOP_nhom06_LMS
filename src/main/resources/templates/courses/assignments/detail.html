@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::body})}">
+<head>
+    <title th:text="${assignment.title}">Assignment detail</title>
+</head>
+<body>
+<section class="stacked-panel">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow" th:text="${course.title}">Course</p>
+            <h1 th:text="${assignment.title}">Assignment</h1>
+        </div>
+        <a class="secondary-button" th:href="@{'/courses/' + ${course.id} + '/assignments'}">Back to list</a>
+    </div>
+
+    <article class="card">
+        <h2>Assignment details</h2>
+        <p><strong>Deadline:</strong> <span th:text="${formattedDueAt}">Due date</span></p>
+        <p><strong>Maximum score:</strong> <span th:text="${assignment.maxScore}">100</span></p>
+        <div th:if="${assignment.description != null}">
+            <h3>Description</h3>
+            <p th:text="${assignment.description}">Description</p>
+        </div>
+        <div th:if="${assignment.instructions != null}">
+            <h3>Instructions</h3>
+            <p th:text="${assignment.instructions}">Instructions</p>
+        </div>
+    </article>
+
+    <article class="card">
+        <h2>Submit your work</h2>
+        <form th:action="@{'/courses/' + ${course.id} + '/assignments/' + ${assignment.id} + '/submit'}" method="post" enctype="multipart/form-data">
+            <label>Notes / answer
+                <textarea name="textAnswer" rows="6" placeholder="Write your answer or notes here..."></textarea>
+            </label>
+            <label>Attachment
+                <input type="file" name="attachment">
+            </label>
+            <button type="submit" class="primary-button">Submit assignment</button>
+        </form>
+
+        <div th:if="${mySubmission != null}">
+            <h3>Your latest submission</h3>
+            <p>Status: <strong th:text="${mySubmission.status}">SUBMITTED</strong></p>
+            <p>Submitted at: <span th:text="${#temporals.format(mySubmission.submittedAt, 'dd/MM/yyyy HH:mm')}">time</span></p>
+            <p th:if="${mySubmission.grade != null}">Grade: <strong th:text="${mySubmission.grade}">0</strong></p>
+            <p th:if="${mySubmission.feedback != null}" th:text="${mySubmission.feedback}">Feedback</p>
+            <p th:if="${mySubmission.attachmentName != null}">
+                Attachment: <span th:text="${mySubmission.attachmentName}">file</span>
+            </p>
+        </div>
+    </article>
+</section>
+</body>
+</html>
