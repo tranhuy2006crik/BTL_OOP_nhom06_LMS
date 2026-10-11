@@ -80,6 +80,59 @@ body {
     gap: 20px;
 }
 
+.home-entry {
+    max-width: 720px;
+    margin: 48px auto;
+    padding: 32px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.home-intro h1 {
+    margin: 8px 0;
+    color: var(--primary);
+}
+
+.home-intro p:last-child {
+    color: var(--muted);
+}
+
+.course-entry-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.course-entry-form label {
+    grid-row: 1;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.course-entry-form input {
+    min-width: 0;
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+}
+
+.course-entry-form button {
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 .course-hero {
     display: flex;
     justify-content: space-between;
@@ -228,5 +281,14 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
+    }
+
+    .course-entry-form {
+        grid-template-columns: 1fr;
+    }
+
+    .course-entry-form label {
+        grid-row: auto;
+        margin-bottom: -8px;
     }
 }

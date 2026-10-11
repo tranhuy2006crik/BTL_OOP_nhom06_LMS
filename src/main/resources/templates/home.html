@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>PTIT Learn</title>
+
+<main class="home-entry">
+    <section class="home-intro">
+        <p class="eyebrow">PTIT Learn</p>
+        <h1>Learning management system</h1>
+        <p>Open a course section to view its lessons and announcements.</p>
+    </section>
+
+    <form class="course-entry-form" method="get" th:action="@{/courses/open}">
+        <label for="courseId">Course ID</label>
+        <input id="courseId" name="courseId" type="number" min="1" required>
+
+        <label for="sectionId">Section ID</label>
+        <input id="sectionId" name="sectionId" type="number" min="1" required>
+
+        <button type="submit">Open section</button>
+    </form>
+</main>
+</html>
