@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Courses - Administration</title>
+<main class="page admin-page">
+    <div class="admin-heading">
+        <div>
+            <p class="page-kicker">ADMINISTRATION / COURSES</p>
+            <h1>Course catalog</h1>
+            <p class="admin-subtitle">Create, edit, publish, and archive courses.</p>
+        </div>
+        <a class="btn admin-primary-action" th:href="@{/admin/courses/new}">＋ Create course</a>
+    </div>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <section class="admin-panel">
+        <form class="admin-filter-form" th:action="@{/admin/courses}" method="get">
+            <label class="admin-search-label">Search
+                <input type="search" name="q" th:value="${query}" placeholder="Course title or code">
+            </label>
+            <label class="admin-select-label">Status
+                <select name="status">
+                    <option value="all" th:selected="${status == 'all'}">All statuses</option>
+                    <option value="draft" th:selected="${status == 'draft'}">Draft</option>
+                    <option value="published" th:selected="${status == 'published'}">Published</option>
+                    <option value="archived" th:selected="${status == 'archived'}">Archived</option>
+                </select>
+            </label>
+            <input type="hidden" name="theme" th:value="${theme}">
+            <button class="btn" type="submit">Search</button>
+        </form>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Course</th><th>Category</th><th>Status</th><th>Dates</th><th>Manage</th></tr></thead>
+                <tbody>
+                <tr th:each="course : ${courses.content}">
+                    <td><strong th:text="${course.title}">Course title</strong><small th:text="${course.courseCode}">CODE</small></td>
+                    <td th:text="${course.category == null ? 'Uncategorized' : course.category.name}">Category</td>
+                    <td><span class="status-pill" th:classappend="' status-' + ${#strings.toLowerCase(course.status)}" th:text="${course.status}">DRAFT</span></td>
+                    <td><small th:text="${course.startAt == null ? 'No start date' : #temporals.format(course.startAt, 'dd MMM yyyy')}">Date</small></td>
+                    <td><a class="admin-inline-link" th:href="@{/admin/courses/{id}(id=${course.id})}">View course →</a></td>
+                </tr>
+                <tr th:if="${courses.empty}"><td class="admin-empty-cell" colspan="5">No courses match your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="admin-pagination" th:if="${courses.totalPages > 1}" aria-label="Course pages">
+            <a th:if="${courses.hasPrevious()}" th:href="@{/admin/courses(q=${query},status=${status},page=${courses.number - 1},theme=${theme})}">← Previous</a>
+            <span th:text="|Page ${courses.number + 1} of ${courses.totalPages}|">Page 1</span>
+            <a th:if="${courses.hasNext()}" th:href="@{/admin/courses(q=${query},status=${status},page=${courses.number + 1},theme=${theme})}">Next →</a>
+        </nav>
+    </section>
+</main>
+</html>

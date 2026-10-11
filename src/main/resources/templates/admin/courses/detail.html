@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Course details - Administration</title>
+<main class="page admin-page">
+    <a class="admin-back-link" th:href="@{/admin/courses}">← Back to courses</a>
+    <div class="admin-heading">
+        <div><p class="page-kicker">ADMINISTRATION / COURSES</p><h1 th:text="${course.title}">Course</h1><p class="admin-subtitle" th:text="${course.courseCode}">CODE</p></div>
+        <a class="btn admin-primary-action" th:href="@{/admin/courses/{id}/edit(id=${course.id})}">Edit course</a>
+    </div>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <section class="admin-panel admin-detail-panel">
+        <div class="admin-detail-row"><span>Status</span><strong><span class="status-pill" th:classappend="' status-' + ${#strings.toLowerCase(course.status)}" th:text="${course.status}">DRAFT</span></strong></div>
+        <div class="admin-detail-row"><span>Category</span><strong th:text="${course.category == null ? 'Uncategorized' : course.category.name}">Category</strong></div>
+        <div class="admin-detail-row"><span>Start</span><strong th:text="${course.startAt == null ? 'Not set' : #temporals.format(course.startAt, 'dd MMM yyyy HH:mm')}">Start date</strong></div>
+        <div class="admin-detail-row"><span>End</span><strong th:text="${course.endAt == null ? 'Not set' : #temporals.format(course.endAt, 'dd MMM yyyy HH:mm')}">End date</strong></div>
+        <div class="admin-description" th:if="${course.description != null}">
+            <h2>Description</h2><p th:text="${course.description}">Description</p>
+        </div>
+    </section>
+    <section class="admin-panel admin-action-panel" th:if="${course.status != T(com.lms.system.model.CourseStatus).ARCHIVED}">
+        <h2>Course actions</h2>
+        <form th:action="@{/admin/courses/{id}/archive(id=${course.id})}" method="post"
+              onsubmit="return confirm('Archive this course? Its learning data will be retained.');">
+            <button class="admin-danger-action" type="submit">Archive course</button>
+        </form>
+    </section>
+</main>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>User details - Administration</title>
+<main class="page admin-page">
+    <a class="admin-back-link" th:href="@{/admin/users}">← Back to users</a>
+    <div class="admin-heading">
+        <div>
+            <p class="page-kicker">ADMINISTRATION / USERS / ACCOUNT</p>
+            <h1 th:text="${managedUser.fullName}">User</h1>
+            <p class="admin-subtitle" th:text="${managedUser.email}">email@example.com</p>
+        </div>
+        <a class="btn admin-primary-action" th:href="@{/admin/users/{id}/edit(id=${managedUser.id})}">Edit account</a>
+    </div>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+    <section class="admin-panel admin-detail-panel">
+        <div class="admin-detail-row"><span>Account status</span><strong><span class="status-pill" th:classappend="' status-' + ${#strings.toLowerCase(managedUser.status)}" th:text="${managedUser.status}">ACTIVE</span></strong></div>
+        <div class="admin-detail-row"><span>System role</span><strong th:text="${managedUser.isSystemAdmin()} ? 'Administrator' : 'Standard user'">Standard user</strong></div>
+        <div class="admin-detail-row"><span>Account created</span><strong th:text="${managedUser.createdAt == null ? '—' : #temporals.format(managedUser.createdAt, 'dd MMM yyyy HH:mm')}">Date</strong></div>
+        <div class="admin-detail-row"><span>System role assignments</span>
+            <strong>
+                <span th:if="${managedUser.systemRoleAssignments.empty}">None</span>
+                <span th:each="assignment, state : ${managedUser.systemRoleAssignments}"
+                      th:text="${(state.first ? '' : ', ') + assignment.role.name}">Administrator</span>
+            </strong>
+        </div>
+    </section>
+    <section class="admin-panel admin-action-panel" th:if="${managedUser.status != T(com.lms.system.model.UserStatus).DELETED}">
+        <h2>Account actions</h2>
+        <div class="admin-action-row">
+            <form th:if="${managedUser.status == T(com.lms.system.model.UserStatus).ACTIVE and managedUser.id != user.id}"
+                  th:action="@{/admin/users/{id}/suspend(id=${managedUser.id})}" method="post"
+                  onsubmit="return confirm('Suspend this account? The user will no longer be able to log in.');">
+                <button class="admin-secondary-action" type="submit">Suspend account</button>
+            </form>
+            <form th:if="${managedUser.status == T(com.lms.system.model.UserStatus).SUSPENDED and managedUser.id != user.id}"
+                  th:action="@{/admin/users/{id}/activate(id=${managedUser.id})}" method="post">
+                <button class="btn" type="submit">Reactivate account</button>
+            </form>
+            <form th:if="${managedUser.id != user.id}"
+                  th:action="@{/admin/users/{id}/delete(id=${managedUser.id})}" method="post"
+                  onsubmit="return confirm('Mark this account deleted? Its learning history will be retained.');">
+                <button class="admin-danger-action" type="submit">Delete account</button>
+            </form>
+        </div>
+        <p class="admin-footnote" th:if="${managedUser.id == user.id}">You cannot suspend or delete your own account.</p>
+        <p class="admin-footnote">Actions that would disable or demote the last active administrator are blocked.</p>
+    </section>
+</main>
+</html>
