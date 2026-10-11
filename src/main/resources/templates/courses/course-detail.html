@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Nội dung khóa học - PTIT Learn</title>
+
+<main class="course-page">
+    <section class="course-hero">
+        <div>
+            <p class="eyebrow">TỔNG QUAN KHÓA HỌC</p>
+            <h1>Bài học và thông báo</h1>
+        </div>
+        <div class="course-badge">
+            <span>Khóa học</span>
+            <strong th:text="${courseId}">#</strong>
+        </div>
+    </section>
+
+    <div class="content-grid">
+        <aside class="left-panel">
+            <div class="panel-block">
+                <h3>Thông báo</h3>
+
+                <div th:if="${#lists.isEmpty(announcements)}" class="empty-state">
+                    Chưa có thông báo nào.
+                </div>
+
+                <article class="announcement-item" th:each="announcement : ${announcements}">
+                    <div class="meta-row">
+                        <span class="status-tag" th:text="${announcement.status == 'PUBLISHED' ? 'Đã đăng' : announcement.status == 'DRAFT' ? 'Bản nháp' : announcement.status}">Đã đăng</span>
+                        <span th:if="${announcement.publishedAt != null}" th:text="${#temporals.format(announcement.publishedAt, 'dd/MM/yyyy HH:mm')}">Thời gian đăng</span>
+                    </div>
+                    <h4 th:text="${announcement.title}">Tiêu đề thông báo</h4>
+                    <p th:text="${announcement.content}">Nội dung thông báo</p>
+                </article>
+            </div>
+        </aside>
+
+        <section class="main-panel">
+            <div class="section-head">
+                <h2>Nội dung chương</h2>
+                <span class="section-id" th:text="'Chương ' + ${sectionId}">Chương</span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(lessons)}" class="empty-state large">
+                Chương này chưa có bài học.
+            </div>
+
+            <article class="lesson-card" th:each="lesson : ${lessons}">
+                <div class="lesson-topbar">
+                    <span class="status-tag" th:text="${lesson.status == 'VISIBLE' ? 'Đang hiển thị' : lesson.status == 'HIDDEN' ? 'Đã ẩn' : lesson.status}">Đang hiển thị</span>
+                    <span class="lesson-position" th:text="'Bài học ' + ${lesson.position}">Bài học 1</span>
+                </div>
+
+                <h3 th:text="${lesson.title}">Tiêu đề bài học</h3>
+                <p class="lesson-description" th:text="${lesson.description}">Mô tả bài học</p>
+
+                <div class="lesson-content" th:utext="${lesson.content}"></div>
+            </article>
+        </section>
+    </div>
+</main>
+</html>
