@@ -40,6 +40,11 @@ body {
     gap: 12px;
 }
 
+.brand-link {
+    color: inherit;
+    text-decoration: none;
+}
+
 .brand-mark {
     display: inline-flex;
     align-items: center;

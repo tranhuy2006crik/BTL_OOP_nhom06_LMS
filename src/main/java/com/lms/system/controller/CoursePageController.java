@@ -45,8 +45,8 @@ public class CoursePageController {
         model.addAttribute("sectionId", sectionId);
         model.addAttribute("lessons", lessons);
         model.addAttribute("announcements", announcements);
-        model.addAttribute("title", "Course content");
-        model.addAttribute("pageTitle", "Course content");
+        model.addAttribute("title", "Nội dung khóa học");
+        model.addAttribute("pageTitle", "Nội dung khóa học");
 
         return "courses/course-detail";
     }

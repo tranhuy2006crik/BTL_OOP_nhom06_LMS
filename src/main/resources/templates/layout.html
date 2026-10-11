@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,18 +8,17 @@
 </head>
 <body>
 <header class="topbar">
-    <div class="brand-box">
+    <a class="brand-box brand-link" th:href="@{/}" aria-label="PTIT Learn - Trang chủ">
         <span class="brand-mark">L</span>
         <div>
             <div class="brand-name">PTIT LEARN</div>
-            <small>Learning management system</small>
+            <small>Hệ thống quản lý học tập</small>
         </div>
-    </div>
+    </a>
 
-    <nav class="main-nav" aria-label="Main navigation">
-        <a th:href="@{/home}">Home</a>
-        <a th:href="@{/courses/1/sections/1}">Courses</a>
-        <a th:href="@{/profile}">Profile</a>
+    <nav class="main-nav" aria-label="Điều hướng chính">
+        <a th:href="@{/}">Trang chủ</a>
+        <a th:href="@{/#course-entry}">Mở khóa học</a>
     </nav>
 </header>
 

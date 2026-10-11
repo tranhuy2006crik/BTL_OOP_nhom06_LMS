@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
-<title>PTIT Learn</title>
+<title>PTIT Learn - Không gian học tập</title>
 
 <main class="home-entry">
     <section class="home-intro">
-        <p class="eyebrow">PTIT Learn</p>
-        <h1>Learning management system</h1>
-        <p>Open a course section to view its lessons and announcements.</p>
+        <p class="eyebrow">KHÔNG GIAN HỌC TẬP</p>
+        <h1>Chào mừng đến với PTIT Learn</h1>
+        <p>Truy cập bài học và thông báo trong khóa học của bạn.</p>
     </section>
 
-    <form class="course-entry-form" method="get" th:action="@{/courses/open}">
-        <label for="courseId">Course ID</label>
-        <input id="courseId" name="courseId" type="number" min="1" required>
+    <form id="course-entry" class="course-entry-form" method="get" th:action="@{/courses/open}">
+        <label for="courseId">Mã khóa học</label>
+        <input id="courseId" name="courseId" type="number" min="1" placeholder="Ví dụ: 1" required>
 
-        <label for="sectionId">Section ID</label>
-        <input id="sectionId" name="sectionId" type="number" min="1" required>
+        <label for="sectionId">Mã chương</label>
+        <input id="sectionId" name="sectionId" type="number" min="1" placeholder="Ví dụ: 1" required>
 
-        <button type="submit">Open section</button>
+        <button type="submit">Mở nội dung học</button>
     </form>
 </main>
 </html>
