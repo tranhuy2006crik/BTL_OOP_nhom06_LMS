@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +21,10 @@
         <a th:classappend="${courseOverviewEnabled} ? ' nav-current' : ''"
            th:attr="aria-current=${courseOverviewEnabled} ? 'page' : null"
            th:href="@{/home#course-overview}">My courses</a>
+        <a sec:authorize="hasRole('ADMIN')"
+           th:classappend="${adminPageEnabled} ? ' nav-current' : ''"
+           th:attr="aria-current=${adminPageEnabled} ? 'page' : null"
+           th:href="@{/admin}">Administration</a>
     </nav>
     <div class="header-actions">
         <form class="header-search" th:if="${courseSearchEnabled}" th:action="@{/home}" method="get">

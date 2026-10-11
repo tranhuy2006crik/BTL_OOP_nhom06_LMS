@@ -88,6 +88,13 @@ public class User {
         this.fullName = requireFullName(newFullName);
     }
 
+    public void updateAccount(String newEmail, String newFullName) {
+        String normalizedEmail = normalizeEmail(newEmail);
+        String validatedFullName = requireFullName(newFullName);
+        this.email = normalizedEmail;
+        this.fullName = validatedFullName;
+    }
+
     public void updateProfile(String newFullName, UserProfileDetails details) {
         String validatedName = requireFullName(newFullName);
         this.fullName = validatedName;
@@ -207,8 +214,17 @@ public class User {
         this.status = UserStatus.ACTIVE;
     }
 
+    public void markDeleted() {
+        this.status = UserStatus.DELETED;
+    }
+
     public void attachSystemRole(SystemRoleAssignment assignment) {
         systemRoleAssignments.add(assignment);
+    }
+
+    public void detachSystemRole(Role role) {
+        systemRoleAssignments.removeIf(assignment -> assignment.getRole() != null
+                && assignment.getRole().getId().equals(role.getId()));
     }
 
     public void attachCourseMembership(CourseMembership membership) {

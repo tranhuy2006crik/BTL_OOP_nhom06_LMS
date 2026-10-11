@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title th:text="${editing} ? 'Edit course - Administration' : 'Create course - Administration'">Course - Administration</title>
+<main class="page admin-page admin-form-page">
+    <a class="admin-back-link" th:href="${editing} ? @{/admin/courses/{id}(id=${course.id})} : @{/admin/courses}">← Back to courses</a>
+    <div class="admin-heading"><div><p class="page-kicker">ADMINISTRATION / COURSES</p><h1 th:text="${editing} ? 'Edit course' : 'Create course'">Course</h1></div></div>
+    <section class="admin-panel">
+        <form class="admin-form" th:object="${courseForm}"
+              th:action="${editing} ? @{/admin/courses/{id}(id=${course.id})} : @{/admin/courses}" method="post">
+            <div class="alert alert-error" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Invalid data</p>
+            </div>
+            <label>Course code<input type="text" th:field="*{courseCode}" maxlength="50" required><small class="field-error" th:errors="*{courseCode}"></small></label>
+            <label>Course title<input type="text" th:field="*{title}" maxlength="200" required><small class="field-error" th:errors="*{title}"></small></label>
+            <label>Category
+                <select th:field="*{categoryId}">
+                    <option value="">Uncategorized</option>
+                    <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Category</option>
+                </select>
+            </label>
+            <label>Status
+                <select th:field="*{status}">
+                    <option th:each="courseStatus : ${courseStatuses}" th:value="${courseStatus}" th:text="${courseStatus}">DRAFT</option>
+                </select>
+                <small class="field-error" th:errors="*{status}"></small>
+            </label>
+            <div class="admin-date-grid">
+                <label>Start date<input type="datetime-local" th:field="*{startAt}"><small class="field-error" th:errors="*{startAt}"></small></label>
+                <label>End date<input type="datetime-local" th:field="*{endAt}"><small class="field-error" th:errors="*{endAt}"></small></label>
+            </div>
+            <label>Description<textarea th:field="*{description}" rows="5" maxlength="10000"></textarea><small class="field-error" th:errors="*{description}"></small></label>
+            <div class="admin-form-actions">
+                <a class="admin-secondary-action" th:href="${editing} ? @{/admin/courses/{id}(id=${course.id})} : @{/admin/courses}">Cancel</a>
+                <button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Create course'">Save</button>
+            </div>
+        </form>
+    </section>
+</main>
+</html>

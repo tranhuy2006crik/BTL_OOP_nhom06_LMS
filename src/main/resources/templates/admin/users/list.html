@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Users - Administration</title>
+<main class="page admin-page">
+    <div class="admin-heading">
+        <div>
+            <p class="page-kicker">ADMINISTRATION / USERS</p>
+            <h1>User accounts</h1>
+            <p class="admin-subtitle">Search accounts and manage their status and system administrator access.</p>
+        </div>
+        <a class="btn admin-primary-action" th:href="@{/admin/users/new}">＋ Create user</a>
+    </div>
+
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+
+    <section class="admin-panel">
+        <form class="admin-filter-form" th:action="@{/admin/users}" method="get">
+            <label class="admin-search-label">Search
+                <input type="search" name="q" th:value="${query}" placeholder="Name or email">
+            </label>
+            <label class="admin-select-label">Account status
+                <select name="status">
+                    <option value="all" th:selected="${status == 'all'}">All statuses</option>
+                    <option value="active" th:selected="${status == 'active'}">Active</option>
+                    <option value="suspended" th:selected="${status == 'suspended'}">Suspended</option>
+                    <option value="deleted" th:selected="${status == 'deleted'}">Deleted</option>
+                </select>
+            </label>
+            <input type="hidden" name="theme" th:value="${theme}">
+            <button class="btn" type="submit">Search</button>
+        </form>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>User</th><th>Status</th><th>Created</th><th>Manage</th></tr></thead>
+                <tbody>
+                <tr th:each="managedUser : ${users.content}">
+                    <td><strong th:text="${managedUser.fullName}">Name</strong><small th:text="${managedUser.email}">email@example.com</small></td>
+                    <td><span class="status-pill" th:classappend="' status-' + ${#strings.toLowerCase(managedUser.status)}" th:text="${managedUser.status}">ACTIVE</span></td>
+                    <td th:text="${managedUser.createdAt == null ? '—' : #temporals.format(managedUser.createdAt, 'dd MMM yyyy')}">Date</td>
+                    <td><a class="admin-inline-link" th:href="@{/admin/users/{id}(id=${managedUser.id})}">View account →</a></td>
+                </tr>
+                <tr th:if="${users.empty}"><td class="admin-empty-cell" colspan="4">No accounts match your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <nav class="admin-pagination" th:if="${users.totalPages > 1}" aria-label="User pages">
+            <a th:if="${users.hasPrevious()}" th:href="@{/admin/users(q=${query},status=${status},page=${users.number - 1},theme=${theme})}">← Previous</a>
+            <span th:text="|Page ${users.number + 1} of ${users.totalPages}|">Page 1</span>
+            <a th:if="${users.hasNext()}" th:href="@{/admin/users(q=${query},status=${status},page=${users.number + 1},theme=${theme})}">Next →</a>
+        </nav>
+    </section>
+</main>
+</html>

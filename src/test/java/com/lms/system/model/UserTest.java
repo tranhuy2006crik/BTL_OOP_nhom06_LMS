@@ -67,4 +67,15 @@ class UserTest {
         assertTrue(hasher.matches("newpass99", user.getPasswordHash()));
     }
 
+    @Test
+    void accountUpdateValidatesAllFieldsBeforeChangingState() {
+        User user = User.register("old@example.com", "Old Name", "hashed:secret12");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateAccount("new@example.com", " "));
+
+        assertEquals("old@example.com", user.getEmail());
+        assertEquals("Old Name", user.getFullName());
+    }
+
 }

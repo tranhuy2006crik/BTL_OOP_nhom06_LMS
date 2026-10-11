@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title th:text="${editing} ? 'Edit user - Administration' : 'Create user - Administration'">User - Administration</title>
+<main class="page admin-page admin-form-page">
+    <a class="admin-back-link" th:href="${editing} ? @{/admin/users/{id}(id=${managedUser.id})} : @{/admin/users}">← Back to users</a>
+    <div class="admin-heading">
+        <div>
+            <p class="page-kicker">ADMINISTRATION / USERS</p>
+            <h1 th:text="${editing} ? 'Edit user account' : 'Create user account'">User account</h1>
+        </div>
+    </div>
+    <section class="admin-panel">
+        <form class="admin-form" th:object="${userForm}"
+              th:action="${editing} ? @{/admin/users/{id}(id=${managedUser.id})} : @{/admin/users}"
+              method="post">
+            <div class="alert alert-error" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Invalid data</p>
+            </div>
+            <label>Email address
+                <input type="email" th:field="*{email}" autocomplete="email" required>
+                <small class="field-error" th:errors="*{email}"></small>
+            </label>
+            <label>Full name
+                <input type="text" th:field="*{fullName}" autocomplete="name" maxlength="150" required>
+                <small class="field-error" th:errors="*{fullName}"></small>
+            </label>
+            <label th:if="${!editing}">Temporary password
+                <input type="password" th:field="*{password}" autocomplete="new-password" minlength="8" maxlength="64" th:required="${!editing}">
+                <small>At least 8 characters, including a letter and a number.</small>
+                <small class="field-error" th:errors="*{password}"></small>
+            </label>
+            <label class="admin-checkbox-row">
+                <input type="checkbox" th:field="*{admin}">
+                <span><strong>System administrator</strong><small>Grant access to the admin area. Course roles are managed through course enrolments.</small></span>
+            </label>
+            <div class="admin-form-actions">
+                <a class="admin-secondary-action" th:href="${editing} ? @{/admin/users/{id}(id=${managedUser.id})} : @{/admin/users}">Cancel</a>
+                <button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Create account'">Save</button>
+            </div>
+        </form>
+    </section>
+</main>
+</html>
