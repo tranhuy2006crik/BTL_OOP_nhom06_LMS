@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Chấm bài - PTIT Learn</title>
+
+<main class="gradebook-page">
+    <section class="gradebook-header">
+        <p class="eyebrow">GIẢNG VIÊN</p>
+        <h1>Chấm bài</h1>
+        <p>Chọn khóa học để xem và chấm các bài nộp của học viên.</p>
+    </section>
+
+    <div th:if="${#lists.isEmpty(courses)}" class="gradebook-empty">
+        Bạn chưa được phân công giảng dạy khóa học nào.
+    </div>
+
+    <section class="gradebook-section" th:each="course : ${courses}">
+        <div class="gradebook-row-heading">
+            <div>
+                <h2 th:text="${course.courseTitle}">Tên khóa học</h2>
+                <p class="grade-secondary"
+                   th:text="${course.submissionCount + ' bài nộp · ' + course.ungradedCount + ' chưa chấm · ' + course.awaitingReleaseCount + ' chưa công bố'}">
+                    Trạng thái chấm bài
+                </p>
+            </div>
+            <a class="gradebook-link"
+               th:href="@{/courses/{courseId}/grading(courseId=${course.courseId})}">
+                Mở chấm bài
+            </a>
+        </div>
+    </section>
+</main>
+</html>

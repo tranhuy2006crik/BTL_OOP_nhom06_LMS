@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Categories - Administration</title>
+<main class="page admin-page">
+    <div class="admin-heading">
+        <div><p class="page-kicker">ADMINISTRATION / COURSE CATALOG</p><h1>Categories</h1><p class="admin-subtitle">Organize courses with parent and child categories.</p></div>
+        <a class="btn admin-primary-action" th:href="@{/admin/categories/new}">＋ Create category</a>
+    </div>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+    <section class="admin-panel">
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Category</th><th>Parent</th><th>Description</th><th>Actions</th></tr></thead>
+                <tbody>
+                <tr th:each="category : ${categories}">
+                    <td><strong th:text="${category.name}">Category</strong></td>
+                    <td th:text="${category.parent == null ? 'Top level' : category.parent.name}">Top level</td>
+                    <td class="admin-description-cell" th:text="${category.description == null ? '—' : category.description}">Description</td>
+                    <td class="admin-row-actions">
+                        <a class="admin-inline-link" th:href="@{/admin/categories/{id}/edit(id=${category.id})}">Edit</a>
+                        <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post"
+                              onsubmit="return confirm('Delete this category? Categories containing courses or children cannot be deleted.');">
+                            <button class="admin-text-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(categories)}"><td class="admin-empty-cell" colspan="4">No categories yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</html>

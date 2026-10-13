@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Điểm và tiến độ - PTIT Learn</title>
+
+<main class="gradebook-page">
+    <section class="gradebook-header">
+        <p class="eyebrow">KẾT QUẢ HỌC TẬP</p>
+        <h1>Điểm và tiến độ</h1>
+        <p>Điểm chỉ hiển thị sau khi giảng viên công bố.</p>
+    </section>
+
+    <section class="gradebook-section">
+        <h2>Tiến độ các khóa học</h2>
+        <div th:if="${#lists.isEmpty(courseProgress)}" class="gradebook-empty">
+            Bạn chưa ghi danh khóa học nào.
+        </div>
+        <article class="progress-card" th:each="progress : ${courseProgress}">
+            <div class="gradebook-row-heading">
+                <h3 th:text="${progress.courseTitle}">Tên khóa học</h3>
+                <strong th:text="${progress.percent + '%'}">0%</strong>
+            </div>
+            <progress th:value="${progress.completedActivities}" th:max="${progress.totalActivities == 0 ? 1 : progress.totalActivities}">
+                Tiến độ khóa học
+            </progress>
+            <p th:text="${progress.completedActivities + ' / ' + progress.totalActivities + ' hoạt động hoàn thành'}">
+                0 / 0 hoạt động hoàn thành
+            </p>
+        </article>
+    </section>
+
+    <section class="gradebook-section">
+        <h2>Điểm từng bài</h2>
+        <div th:if="${#lists.isEmpty(grades)}" class="gradebook-empty">
+            Chưa có bài tập nào trong các khóa học bạn đang tham gia.
+        </div>
+        <div class="grade-table-wrap" th:unless="${#lists.isEmpty(grades)}">
+            <table class="grade-table">
+                <thead>
+                <tr>
+                    <th>Khóa học / Bài tập</th>
+                    <th>Lần nộp</th>
+                    <th>Trạng thái</th>
+                    <th>Điểm</th>
+                    <th>Nhận xét</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="grade : ${grades}">
+                    <td>
+                        <strong th:text="${grade.courseTitle}">Khóa học</strong>
+                        <span class="grade-secondary" th:text="${grade.assignmentTitle}">Bài tập</span>
+                        <span class="grade-secondary" th:if="${grade.dueAt != null}"
+                              th:text="'Hạn nộp: ' + ${#temporals.format(grade.dueAt, 'dd/MM/yyyy HH:mm')}">Hạn nộp</span>
+                    </td>
+                    <td th:text="${grade.attemptNumber == null ? '—' : grade.attemptNumber}">—</td>
+                    <td>
+                        <!-- Điểm/nhận xét chưa công bố không có trong dữ liệu truy vấn nên được hiển thị là chờ công bố. -->
+                        <span th:if="${grade.submissionId == null}">Chưa nộp</span>
+                        <span th:if="${grade.submissionId != null and grade.submissionStatus == 'DRAFT'}">Bản nháp</span>
+                        <span th:if="${grade.submissionId != null and grade.score == null and grade.submissionStatus == 'SUBMITTED'}">
+                            Đã nộp · chờ công bố điểm
+                        </span>
+                        <span th:if="${grade.submissionId != null and grade.score == null and grade.submissionStatus == 'LATE'}">
+                            Đã nộp trễ · chờ công bố điểm
+                        </span>
+                        <span th:if="${grade.score != null}">Đã chấm</span>
+                        <span class="grade-secondary" th:if="${grade.submittedAt != null}"
+                              th:text="${#temporals.format(grade.submittedAt, 'dd/MM/yyyy HH:mm')}">Ngày nộp</span>
+                    </td>
+                    <td>
+                        <strong th:if="${grade.score != null}"
+                                th:text="${grade.score.stripTrailingZeros().toPlainString() + ' / ' + grade.maxGrade.stripTrailingZeros().toPlainString()}">0 / 100</strong>
+                        <span th:if="${grade.score == null}">— / <span th:text="${grade.maxGrade.stripTrailingZeros().toPlainString()}">100</span></span>
+                    </td>
+                    <td>
+                        <span th:if="${grade.feedback != null and !grade.feedback.isBlank()}"
+                              th:text="${grade.feedback}">Nhận xét</span>
+                        <span th:if="${grade.feedback == null or grade.feedback.isBlank()}">—</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</html>

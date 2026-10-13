@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Chấm điểm - PTIT Learn</title>
+
+<main class="gradebook-page">
+    <section class="gradebook-header">
+        <p class="eyebrow">QUẢN LÝ KHÓA HỌC</p>
+        <h1>Chấm điểm bài nộp</h1>
+        <p>Nhập điểm và lưu trước; điểm chưa hiển thị cho học viên cho tới khi được công bố.</p>
+    </section>
+
+    <div class="gradebook-notice" th:if="${gradeNotice != null}" role="status" th:text="${gradeNotice}"></div>
+    <div class="gradebook-error" th:if="${gradeError != null}" role="alert" th:text="${gradeError}"></div>
+
+    <div th:if="${#lists.isEmpty(submissions)}" class="gradebook-empty">
+        Chưa có bài nộp cần chấm trong khóa học này.
+    </div>
+
+    <section class="grading-list" th:each="submission : ${submissions}">
+        <article class="grading-card">
+            <header class="grading-card-header">
+                <div>
+                    <p class="eyebrow" th:text="${submission.assignmentTitle}">Bài tập</p>
+                    <h2 th:text="${submission.studentName}">Học viên</h2>
+                    <p class="grade-secondary" th:text="${submission.studentEmail}">email</p>
+                </div>
+                <div class="grading-submission-meta">
+                    <span class="grade-status" th:text="${submission.status == 'LATE' ? 'Nộp trễ' : 'Đã nộp'}">Đã nộp</span>
+                    <span th:text="'Lần nộp ' + ${submission.attemptNumber}">Lần nộp 1</span>
+                    <span th:if="${submission.submittedAt != null}"
+                          th:text="${#temporals.format(submission.submittedAt, 'dd/MM/yyyy HH:mm')}">Ngày nộp</span>
+                </div>
+            </header>
+
+            <div class="submission-content">
+                <h3>Nội dung bài làm</h3>
+                <p th:if="${submission.textContent == null or submission.textContent.isBlank()}" class="grade-secondary">
+                    Bài nộp không có nội dung văn bản.
+                </p>
+                <pre th:if="${submission.textContent != null and !submission.textContent.isBlank()}"
+                     th:text="${submission.textContent}">Nội dung</pre>
+                <p th:if="${submission.attachedFileNames != null}" class="grade-secondary">
+                    Tệp đính kèm: <span th:text="${submission.attachedFileNames}">files</span>
+                </p>
+            </div>
+
+            <!-- Form chỉ lưu điểm; thao tác công bố là nút riêng ở bên dưới. -->
+            <form class="grading-form" method="post"
+                  th:action="@{/courses/{courseId}/grading/{submissionId}/save(courseId=${courseId}, submissionId=${submission.submissionId})}"
+                  th:object="${gradeForm}">
+                <label>
+                    Điểm (tối đa <span th:text="${submission.maxGrade.stripTrailingZeros().toPlainString()}">100</span>)
+                    <input type="number" name="score" min="0" step="0.01" required
+                           th:max="${submission.maxGrade}"
+                           th:value="${submission.score}" />
+                </label>
+                <label>
+                    Nhận xét
+                    <textarea name="feedback" rows="3" maxlength="5000"
+                              th:text="${submission.feedback}"></textarea>
+                </label>
+                <button type="submit" class="grade-action-button">Lưu điểm chưa công bố</button>
+            </form>
+
+            <!-- Chỉ hiện nút công bố khi đã có điểm và điểm hiện chưa được công bố. -->
+            <div class="grading-release-row">
+                <span th:if="${submission.score == null}">Chưa lưu điểm</span>
+                <span th:if="${submission.score != null and submission.releasedAt == null}">
+                    Đã lưu <strong th:text="${submission.score.stripTrailingZeros().toPlainString()}">0</strong> điểm · Chưa công bố
+                </span>
+                <span th:if="${submission.releasedAt != null}">
+                    Đã công bố <strong th:text="${submission.score.stripTrailingZeros().toPlainString()}">0</strong> điểm
+                </span>
+                <form th:if="${submission.score != null and submission.releasedAt == null}" method="post"
+                      th:action="@{/courses/{courseId}/grading/{submissionId}/release(courseId=${courseId}, submissionId=${submission.submissionId})}">
+                    <button type="submit" class="grade-release-button">Công bố điểm</button>
+                </form>
+            </div>
+        </article>
+    </section>
+</main>
+</html>

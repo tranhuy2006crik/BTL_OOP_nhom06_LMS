@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Private files - PTIT Learn</title>
+<main class="page private-files-page">
+    <section class="private-files-profile" aria-labelledby="private-files-heading">
+        <span class="private-files-avatar" th:text="${#strings.substring(user.fullName, 0, 1)}">U</span>
+        <h1 th:text="${user.fullName}">User name</h1>
+    </section>
+
+    <h2 class="private-files-title" id="private-files-heading">Private files</h2>
+
+    <div class="storage-alert" role="status">
+        <span class="storage-alert-icon" aria-hidden="true">✓</span>
+        <span>You have currently used <strong th:text="${usedStorage}">103.2 KB</strong>
+            of your <strong th:text="${limitMegabytes + ' MB'}">100 MB</strong> limit.</span>
+        <span class="storage-progress" role="progressbar" aria-label="Private storage used"
+              th:attr="aria-valuenow=${usedPercentage}, aria-valuemin=0, aria-valuemax=100">
+            <span th:style="'width: ' + ${usedPercentage} + '%'"></span>
+        </span>
+    </div>
+
+    <div class="private-files-layout">
+        <div class="private-files-label">Files</div>
+        <section class="file-manager" aria-label="Private file manager">
+            <div class="file-manager-toolbar">
+                <div class="file-manager-actions">
+                    <a class="file-tool-button" th:href="@{/private-files(notice='upload',theme=${theme},view=${view})}"
+                       aria-label="Upload file" title="Upload file">＋</a>
+                    <a class="file-tool-button" th:href="@{/private-files(notice='folder',theme=${theme},view=${view})}"
+                       aria-label="Create folder" title="Create folder">▣<span class="tool-plus">＋</span></a>
+                    <a class="file-tool-button" th:href="@{/private-files(notice='download',theme=${theme},view=${view})}"
+                       aria-label="Download files" title="Download files">⬇</a>
+                </div>
+                <div class="file-manager-view">
+                    <a class="file-tool-button" th:classappend="${view == 'grid'} ? ' file-view-active'"
+                       th:href="@{/private-files(view='grid',theme=${theme})}"
+                       aria-label="Grid view" title="Grid view">▦</a>
+                    <a class="file-tool-button" th:classappend="${view == 'list'} ? ' file-view-active'"
+                       th:href="@{/private-files(view='list',theme=${theme})}"
+                       aria-label="List view" title="List view">☷</a>
+                    <a class="file-tool-button file-tree-toggle" href="#file-list"
+                       aria-label="File area" title="File area">▰</a>
+                </div>
+            </div>
+
+            <div class="file-breadcrumb">
+                <span aria-hidden="true">▰</span>
+                <span>Files</span>
+            </div>
+
+            <div id="file-list" class="private-file-list" th:classappend="${view == 'list'} ? ' private-file-list-view'">
+                <article class="private-file-card" th:each="file : ${files}">
+                    <a class="private-file-preview" th:href="@{/private-files(notice='download',theme=${theme},view=${view})}"
+                       th:attr="aria-label=${'Preview ' + file.name}">
+                        <span class="lemon-branch" aria-hidden="true">✦</span>
+                        <span class="lemon-fruit" aria-hidden="true" th:text="${file.previewSymbol}">🍋</span>
+                        <span class="lemon-leaves" aria-hidden="true">✿</span>
+                    </a>
+                    <div class="private-file-details">
+                        <a class="private-file-name"
+                           th:href="@{/private-files(notice='download',theme=${theme},view=${view})}"
+                           th:text="${file.displayName()}" th:title="${file.name}">perthlemon...</a>
+                        <span class="private-file-meta" th:text="${file.formattedSize()}">103.2 KB</span>
+                    </div>
+                </article>
+                <div class="private-files-empty" th:if="${#lists.isEmpty(files)}">
+                    <span aria-hidden="true">▱</span>
+                    <h3>No private files yet</h3>
+                    <p>Your personal files will appear here when storage is connected.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="private-files-footer">
+        <p class="private-files-demo-note">
+            This file is sample content for the interface preview. Uploading and downloading will be available when private storage is connected.
+        </p>
+        <div class="private-files-footer-actions">
+            <a class="private-save-button" th:href="@{/private-files(notice='upload',theme=${theme},view=${view})}">Upload files</a>
+            <a class="private-cancel-button" th:href="@{/profile}">Profile</a>
+        </div>
+    </div>
+</main>
+</html>

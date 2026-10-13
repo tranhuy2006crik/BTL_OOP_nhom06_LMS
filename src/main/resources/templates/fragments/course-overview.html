@@ -1,0 +1,93 @@
+<section class="course-overview" th:fragment="overview(courses, courseCount, status, query, sort, view, theme, pagePath)"
+         id="course-overview" aria-labelledby="overview-heading">
+    <div class="overview-heading">
+        <div>
+            <h2 id="overview-heading">Course overview</h2>
+            <p>Pick up where you left off and keep your learning moving.</p>
+        </div>
+        <span class="demo-label"><span aria-hidden="true">✦</span> Demo courses</span>
+    </div>
+
+    <form class="course-toolbar" aria-label="Course controls" th:action="@{${pagePath}}" method="get">
+        <label class="select-wrap">
+            <span class="visually-hidden">Filter courses by status</span>
+            <select id="course-status" name="status">
+                <option value="in-progress" th:selected="${status == 'in-progress'}">In progress</option>
+                <option value="future" th:selected="${status == 'future'}">Future</option>
+                <option value="past" th:selected="${status == 'past'}">Past</option>
+                <option value="all" th:selected="${status == 'all'}">All courses</option>
+            </select>
+        </label>
+        <label class="course-search">
+            <span aria-hidden="true">⌕</span>
+            <span class="visually-hidden">Search courses</span>
+            <input id="course-search" type="search" name="q" th:value="${query}" placeholder="Search courses">
+            <kbd>/</kbd>
+        </label>
+        <label class="select-wrap sort-select">
+            <span class="visually-hidden">Sort courses</span>
+            <select id="course-sort" name="sort">
+                <option value="recent" th:selected="${sort == 'recent'}">Sort by last accessed</option>
+                <option value="name-asc" th:selected="${sort == 'name-asc'}">Sort by course name</option>
+                <option value="name-desc" th:selected="${sort == 'name-desc'}">Sort by name (Z to A)</option>
+                <option value="progress" th:selected="${sort == 'progress'}">Sort by progress</option>
+            </select>
+        </label>
+        <label class="select-wrap view-select">
+            <span class="visually-hidden">Choose course layout</span>
+            <select id="course-view" name="view">
+                <option value="card" th:selected="${view == 'card'}">Card</option>
+                <option value="list" th:selected="${view == 'list'}">List</option>
+            </select>
+        </label>
+        <input type="hidden" name="theme" th:value="${theme}">
+        <th:block th:if="${pagePath == '/dashboard'}">
+            <input type="hidden" name="timelineFilter" th:value="${timelineFilter}">
+            <input type="hidden" name="timelineSort" th:value="${timelineSort}">
+            <input type="hidden" name="timelineQuery" th:value="${timelineQuery}">
+            <input type="hidden" name="month" th:value="${calendarMonth}">
+            <input type="hidden" name="day" th:value="${selectedDay}">
+        </th:block>
+        <button class="filter-submit" type="submit" aria-label="Apply course filters" title="Apply course filters">→</button>
+    </form>
+
+    <div class="course-grid" th:classappend="${view == 'list'} ? ' list-view'">
+        <article class="course-card" th:each="course : ${courses}">
+            <a class="course-artwork" th:classappend="' artwork-' + ${course.artwork}"
+               th:href="${pagePath + '#course-overview'}" tabindex="-1" aria-hidden="true">
+                <span class="artwork-sun"></span>
+                <span class="artwork-symbol" th:text="${course.symbol}">✦</span>
+                <span class="artwork-spark artwork-spark-one" aria-hidden="true">✦</span>
+                <span class="artwork-spark artwork-spark-two" aria-hidden="true">✧</span>
+            </a>
+            <div class="course-card-body">
+                <div class="course-copy">
+                    <div class="course-title-row">
+                        <span class="favorite-star" th:if="${course.starred}" aria-label="Starred course">★</span>
+                        <h3><a class="course-title" th:href="${pagePath + '#course-overview'}" th:text="${course.title}">Course title</a></h3>
+                    </div>
+                    <p class="course-category" th:text="${course.category}">Course category</p>
+                </div>
+                <div class="course-progress">
+                    <span class="progress-label" th:attr="aria-label=${course.completion} + '% complete'">
+                        <strong th:text="${course.completion}">0</strong>% complete
+                    </span>
+                    <a class="course-more"
+                       th:href="@{${pagePath}(notice='course-options', status=${status}, q=${query}, sort=${sort}, view=${view}, theme=${theme})}"
+                       aria-label="More course options" title="More course options">⋮</a>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="no-courses" th:if="${#lists.isEmpty(courses)}">
+        <span aria-hidden="true">✦</span>
+        <h3>No courses found</h3>
+        <p>Try another search or choose a different course status.</p>
+    </div>
+    <p class="course-grid-count"
+       th:text="${courseCount} + (${courseCount == 1} ? ' course' : ' courses')">0 courses</p>
+    <p class="sample-data-note">
+        <span aria-hidden="true">ⓘ</span>
+        These course cards are sample content for the interface preview and are not connected to enrollments yet.
+    </p>
+</section>

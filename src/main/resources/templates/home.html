@@ -1,0 +1,23 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{layout :: layout(~{::title}, ~{::main})}"
+>
+  <title>My courses - PTIT Learn</title>
+  <main class="page courses-page" id="page-top">
+    <div class="courses-heading">
+      <div>
+        <p class="page-kicker">YOUR LEARNING SPACE</p>
+        <h1>My courses</h1>
+      </div>
+      <p class="welcome-user">
+        Welcome, <strong th:text="${user.fullName}">Learner</strong>
+      </p>
+    </div>
+
+    <section
+      th:replace="~{fragments/course-overview :: overview(
+            ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/home')}"
+    ></section>
+  </main>
+</html>

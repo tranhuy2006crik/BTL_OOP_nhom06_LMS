@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title th:text="${editing} ? 'Edit category - Administration' : 'Create category - Administration'">Category - Administration</title>
+<main class="page admin-page admin-form-page">
+    <a class="admin-back-link" th:href="@{/admin/categories}">← Back to categories</a>
+    <div class="admin-heading"><div><p class="page-kicker">ADMINISTRATION / COURSE CATALOG</p><h1 th:text="${editing} ? 'Edit category' : 'Create category'">Category</h1></div></div>
+    <section class="admin-panel">
+        <form class="admin-form" th:object="${categoryForm}"
+              th:action="${editing} ? @{/admin/categories/{id}(id=${category.id})} : @{/admin/categories}" method="post">
+            <div class="alert alert-error" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Invalid data</p>
+            </div>
+            <label>Category name<input type="text" th:field="*{name}" maxlength="120" required><small class="field-error" th:errors="*{name}"></small></label>
+            <label>Parent category
+                <select th:field="*{parentId}">
+                    <option value="">None (top-level category)</option>
+                    <option th:each="parent : ${parentCategories}" th:value="${parent.id}" th:text="${parent.name}">Parent</option>
+                </select>
+            </label>
+            <label>Description<textarea th:field="*{description}" rows="5" maxlength="10000"></textarea><small class="field-error" th:errors="*{description}"></small></label>
+            <div class="admin-form-actions">
+                <a class="admin-secondary-action" th:href="@{/admin/categories}">Cancel</a>
+                <button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Create category'">Save</button>
+            </div>
+        </form>
+    </section>
+</main>
+</html>
