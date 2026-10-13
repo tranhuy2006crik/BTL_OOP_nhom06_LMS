@@ -25,6 +25,7 @@ public class LessonService {
     @Transactional(readOnly = true)
     public List<LessonResponse> list(Long courseId, Long sectionId, String email) {
         Long userId = repository.requireActiveUserId(email);
+        repository.requireCourseNotArchived(courseId);
         boolean canManage = repository.canManageCourse(userId, courseId);
         // Người xem phải là quản lý khóa hoặc học viên đang ghi danh; visibility được lọc trong repository.
         if (!canManage && !repository.isActiveStudent(userId, courseId)) {
@@ -37,6 +38,7 @@ public class LessonService {
     @Transactional
     public CourseSectionSummary createSection(Long courseId, CourseSectionRequest request, String email) {
         Long userId = repository.requireActiveUserId(email);
+        repository.requireCourseNotArchived(courseId);
         if (!repository.canManageCourse(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ giảng viên của khóa học mới được tạo chương");
         }
@@ -73,6 +75,7 @@ public class LessonService {
 
     private Long requireManager(Long courseId, String email) {
         Long userId = repository.requireActiveUserId(email);
+        repository.requireCourseNotArchived(courseId);
         // Kiểm tra quyền ở service để controller không phải chứa quy tắc nghiệp vụ.
         if (!repository.canManageCourse(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ giảng viên của khóa học mới được quản lý bài học");

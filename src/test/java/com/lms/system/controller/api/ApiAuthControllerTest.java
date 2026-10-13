@@ -237,11 +237,11 @@ class ApiAuthControllerTest {
                         .andExpect(content().string(containsString("Welcome back,")))
                         .andExpect(content().string(containsString("Web Test User")))
                         .andExpect(content().string(containsString("Course overview")))
-                .andExpect(content().string(containsString("Timeline")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("STAY ON TRACK"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Timeline"))))
                 .andExpect(content().string(containsString("Calendar")))
                 .andExpect(content().string(containsString("Latest announcements")))
                 .andExpect(content().string(containsString("October 2026")))
-                .andExpect(content().string(containsString("Wednesday, 23 December 2026")))
                 .andExpect(content().string(containsString("aria-label=\"October 2026 5\"")));
 
         mockMvc.perform(get("/dashboard").session(session)
@@ -250,19 +250,12 @@ class ApiAuthControllerTest {
                         .param("status", "all")
                         .param("q", "cultures")
                         .param("view", "list")
-                        .param("timelineFilter", "upcoming")
-                        .param("timelineSort", "latest")
-                        .param("timelineQuery", "window")
                         .param("theme", "dark"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Celebrating Cultures")))
                 .andExpect(content().string(containsString("list-view")))
                 .andExpect(content().string(containsString("data-theme=\"dark\"")))
-                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Edit mode"))))
-                .andExpect(content().string(containsString("View from your window")))
-                .andExpect(content().string(org.hamcrest.Matchers.not(
-                        containsString("What do you already know?")
-                )));
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Edit mode"))));
 
         mockMvc.perform(get("/calendar").session(session)
                         .param("month", "2026-10")

@@ -14,12 +14,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.lms.system.dto.CourseSectionRequest;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -108,5 +112,35 @@ class LmsWorkflowServiceTests {
 
         assertEquals(List.of(), announcements);
         verify(repository).findAnnouncements(4L, false);
+    }
+
+    @Test
+    void archivedCourseBlocksLessonAndAnnouncementFlows() {
+        when(repository.requireActiveUserId("teacher@example.com")).thenReturn(8L);
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khóa học"))
+                .when(repository).requireCourseNotArchived(4L);
+
+        assertThrows(ResponseStatusException.class,
+                () -> lessonService.list(4L, 9L, "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> lessonService.createSection(4L, new CourseSectionRequest("Section", null), "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> lessonService.create(4L, 9L,
+                        new LessonRequest("Lesson", null, "Content"), "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> lessonService.update(4L, 9L, 31L,
+                        new LessonRequest("Lesson", null, "Content"), "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> lessonService.delete(4L, 9L, 31L, "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> announcementService.publish(4L,
+                        new AnnouncementRequest("Title", "Content"), "teacher@example.com"));
+        assertThrows(ResponseStatusException.class,
+                () -> announcementService.list(4L, "teacher@example.com"));
+
+        verify(repository, times(7)).requireCourseNotArchived(4L);
+        verify(repository, never()).canManageCourse(8L, 4L);
+        verify(repository, never()).findLessons(4L, 9L, true);
+        verify(repository, never()).findAnnouncements(4L, true);
     }
 }

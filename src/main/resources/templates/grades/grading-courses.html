@@ -2,31 +2,41 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 <title>Chấm bài - PTIT Learn</title>
 
-<main class="gradebook-page">
-    <section class="gradebook-header">
-        <p class="eyebrow">GIẢNG VIÊN</p>
-        <h1>Chấm bài</h1>
-        <p>Chọn khóa học để xem và chấm các bài nộp của học viên.</p>
+<main class="gradebook-page teacher-courses-page">
+    <section class="gradebook-header teacher-courses-header">
+        <div>
+            <p class="eyebrow">TRUNG TÂM ĐÁNH GIÁ</p>
+            <h1>Chấm điểm</h1>
+            <p>Quản lý bài nộp, phản hồi và kết quả học tập trong các khóa bạn phụ trách.</p>
+        </div>
+        <span class="teacher-gradebook-mark" aria-hidden="true">✓</span>
     </section>
 
-    <div th:if="${#lists.isEmpty(courses)}" class="gradebook-empty">
-        Bạn chưa được phân công giảng dạy khóa học nào.
+    <div class="grading-empty-state" th:if="${#lists.isEmpty(courses)}">
+        <span aria-hidden="true">▤</span>
+        <h2>Chưa có khóa học được phân công</h2>
+        <p>Khi bạn được thêm làm giảng viên của một khóa học, danh sách chấm điểm sẽ xuất hiện tại đây.</p>
     </div>
 
-    <section class="gradebook-section" th:each="course : ${courses}">
-        <div class="gradebook-row-heading">
-            <div>
+    <section class="grading-course-list" th:unless="${#lists.isEmpty(courses)}">
+        <article class="grading-course-card" th:each="course : ${courses}">
+            <div class="grading-course-icon" aria-hidden="true">▤</div>
+            <div class="grading-course-main">
+                <p class="eyebrow">KHÓA HỌC</p>
                 <h2 th:text="${course.courseTitle}">Tên khóa học</h2>
-                <p class="grade-secondary"
-                   th:text="${course.submissionCount + ' bài nộp · ' + course.ungradedCount + ' chưa chấm · ' + course.awaitingReleaseCount + ' chưa công bố'}">
-                    Trạng thái chấm bài
-                </p>
+                <div class="grading-course-stats">
+                    <span><strong th:text="${course.submissionCount}">0</strong> bài nộp</span>
+                    <span class="grading-course-needs-action">
+                        <strong th:text="${course.ungradedCount}">0</strong> chưa chấm
+                    </span>
+                    <span><strong th:text="${course.awaitingReleaseCount}">0</strong> chờ công bố</span>
+                </div>
             </div>
             <a class="gradebook-link"
-               th:href="@{/courses/{courseId}/grading(courseId=${course.courseId})}">
-                Mở chấm bài
+               th:href="@{/courses/{courseId}/grading(courseId=${course.courseId},theme=${theme})}">
+                Mở sổ điểm <span aria-hidden="true">→</span>
             </a>
-        </div>
+        </article>
     </section>
 </main>
 </html>

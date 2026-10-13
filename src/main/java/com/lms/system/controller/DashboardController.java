@@ -46,9 +46,6 @@ public class DashboardController {
             @RequestParam(defaultValue = "recent") String sort,
             @RequestParam(defaultValue = "card") String view,
             @RequestParam(defaultValue = "light") String theme,
-            @RequestParam(defaultValue = "all") String timelineFilter,
-            @RequestParam(defaultValue = "dates") String timelineSort,
-            @RequestParam(defaultValue = "") String timelineQuery,
             @RequestParam(required = false) String month,
             @RequestParam(required = false) Integer day,
             @RequestParam(required = false) String notice,
@@ -58,8 +55,6 @@ public class DashboardController {
         requireChoice("sort", sort, Set.of("recent", "name-asc", "name-desc", "progress"));
         requireChoice("view", view, Set.of("card", "list"));
         requireChoice("theme", theme, Set.of("light", "dark"));
-        requireChoice("timelineFilter", timelineFilter, Set.of("all", "upcoming", "past"));
-        requireChoice("timelineSort", timelineSort, Set.of("dates", "latest"));
 
         YearMonth selectedMonth = parseMonth(month);
         int selectedDay;
@@ -78,7 +73,6 @@ public class DashboardController {
 
         User user = profileService.getProfile(currentUser.getId());
         String query = q.trim();
-        String normalizedTimelineQuery = timelineQuery.trim();
         var courses = courseCatalogService.searchForUser(currentUser.getId(), status, query, sort);
 
         model.addAttribute("user", user);
@@ -94,11 +88,6 @@ public class DashboardController {
         model.addAttribute("sort", sort);
         model.addAttribute("view", view);
         model.addAttribute("theme", theme);
-        model.addAttribute("timelineFilter", timelineFilter);
-        model.addAttribute("timelineSort", timelineSort);
-        model.addAttribute("timelineQuery", normalizedTimelineQuery);
-        model.addAttribute("activities",
-                dashboardService.timeline(timelineFilter, normalizedTimelineQuery, timelineSort));
         model.addAttribute("announcements", workflowRepository.findLatestAnnouncementsForUser(currentUser.getId()));
         model.addAttribute("weekdays", dashboardService.weekdays());
         model.addAttribute("calendarCells", dashboardService.calendar(selectedMonth, selectedDay));

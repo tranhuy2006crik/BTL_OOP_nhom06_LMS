@@ -41,6 +41,17 @@ public class LmsWorkflowRepository {
         return userIds.get(0);
     }
 
+    public void requireCourseNotArchived(Long courseId) {
+        List<String> statuses = jdbcTemplate.query(
+                "SELECT status FROM courses WHERE id = ?",
+                (resultSet, rowNumber) -> resultSet.getString("status"),
+                courseId
+        );
+        if (statuses.isEmpty() || "ARCHIVED".equals(statuses.get(0))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khóa học");
+        }
+    }
+
     // Cho phép quản lý nếu user là giảng viên của khóa hoặc admin toàn hệ thống.
     public boolean canManageCourse(Long userId, Long courseId) {
         Boolean allowed = jdbcTemplate.queryForObject("""

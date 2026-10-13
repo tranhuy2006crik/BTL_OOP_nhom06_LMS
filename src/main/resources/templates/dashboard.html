@@ -41,64 +41,6 @@
                     ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/dashboard')}">
             </section>
 
-            <section class="timeline-panel" aria-labelledby="timeline-heading">
-                <div class="dashboard-section-heading">
-                    <div>
-                        <p class="page-kicker">STAY ON TRACK</p>
-                        <h2 id="timeline-heading">Timeline</h2>
-                    </div>
-                    <a class="section-text-link" href="#timeline-heading">View all <span aria-hidden="true">→</span></a>
-                </div>
-                <form class="timeline-controls" th:action="@{/dashboard}" method="get">
-                    <label class="select-wrap">
-                        <span class="visually-hidden">Filter timeline</span>
-                        <select name="timelineFilter">
-                            <option value="all" th:selected="${timelineFilter == 'all'}">All</option>
-                            <option value="upcoming" th:selected="${timelineFilter == 'upcoming'}">Upcoming</option>
-                            <option value="past" th:selected="${timelineFilter == 'past'}">Past</option>
-                        </select>
-                    </label>
-                    <label class="select-wrap timeline-sort-select">
-                        <span class="visually-hidden">Sort timeline</span>
-                        <select name="timelineSort">
-                            <option value="dates" th:selected="${timelineSort == 'dates'}">Sort by dates</option>
-                            <option value="latest" th:selected="${timelineSort == 'latest'}">Sort by latest</option>
-                        </select>
-                    </label>
-                    <label class="timeline-search">
-                        <span aria-hidden="true">⌕</span>
-                        <span class="visually-hidden">Search activities</span>
-                        <input type="search" name="timelineQuery" th:value="${timelineQuery}"
-                               placeholder="Search by activity type or name">
-                    </label>
-                    <input type="hidden" name="status" th:value="${status}">
-                    <input type="hidden" name="q" th:value="${query}">
-                    <input type="hidden" name="sort" th:value="${sort}">
-                    <input type="hidden" name="view" th:value="${view}">
-                    <input type="hidden" name="theme" th:value="${theme}">
-                    <input type="hidden" name="month" th:value="${calendarMonth}">
-                    <input type="hidden" name="day" th:value="${selectedDay}">
-                    <button type="submit" class="timeline-apply">Apply</button>
-                </form>
-
-                <div class="timeline-empty" th:if="${#lists.isEmpty(activities)}">
-                    No activities match this search.
-                </div>
-                <div class="timeline-activities" th:unless="${#lists.isEmpty(activities)}">
-                    <article class="timeline-activity" th:each="activity : ${activities}">
-                        <h3 class="timeline-date" th:text="${activity.formattedDate()}">Wednesday, 23 December 2026</h3>
-                        <div class="activity-card">
-                            <time class="activity-time" th:text="${activity.dueTime}">06:00</time>
-                            <span class="activity-icon" aria-hidden="true">⇧</span>
-                            <div class="activity-description">
-                                <a href="#timeline-heading" th:text="${activity.title}">Assignment</a>
-                                <p th:text="${activity.courseLabel}">Assignment is due · Course</p>
-                            </div>
-                            <a class="submission-link" href="#timeline-heading">Add submission</a>
-                        </div>
-                    </article>
-                </div>
-            </section>
         </div>
 
         <aside class="dashboard-side-column" aria-label="Dashboard blocks">
@@ -109,13 +51,11 @@
                 </div>
                 <div class="calendar-month-nav">
                     <a th:href="@{/dashboard(month=${previousMonth},theme=${theme},status=${status},q=${query},
-                            sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
-                            timelineQuery=${timelineQuery},day=1)}"
+                            sort=${sort},view=${view},day=1)}"
                        aria-label="Previous month">‹</a>
                     <span th:text="${calendarMonthLabel}">October 2026</span>
                     <a th:href="@{/dashboard(month=${nextMonth},theme=${theme},status=${status},q=${query},
-                            sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
-                            timelineQuery=${timelineQuery},day=1)}"
+                            sort=${sort},view=${view},day=1)}"
                        aria-label="Next month">›</a>
                 </div>
                 <div class="calendar-grid" role="grid" aria-label="Calendar">
@@ -127,8 +67,7 @@
                            th:attr="aria-current=${cell.today} ? 'date' : null,
                                     aria-label=${calendarMonthLabel + ' ' + cell.day}"
                            th:href="@{/dashboard(month=${calendarMonth},day=${cell.day},theme=${theme},status=${status},q=${query},
-                                   sort=${sort},view=${view},timelineFilter=${timelineFilter},timelineSort=${timelineSort},
-                                   timelineQuery=${timelineQuery})}">
+                                   sort=${sort},view=${view})}">
                             <span th:text="${cell.day}">1</span>
                             <i th:if="${cell.hasEvent}" aria-hidden="true"></i>
                         </a>
@@ -162,13 +101,6 @@
                 </article>
             </section>
 
-            <section class="dashboard-tip-panel">
-                <span class="tip-mark" aria-hidden="true">✦</span>
-                <p class="page-kicker">A LITTLE REMINDER</p>
-                <h2>Small steps add up.</h2>
-                <p>Check your timeline to stay ahead of upcoming assignments.</p>
-                <a href="#timeline-heading">See your timeline <span aria-hidden="true">→</span></a>
-            </section>
         </aside>
     </div>
 </main>

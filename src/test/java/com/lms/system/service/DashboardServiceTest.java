@@ -23,12 +23,4 @@ class DashboardServiceTest {
         assertEquals("October 2026", dashboardService.monthLabel(YearMonth.of(2026, 10)));
     }
 
-    @Test
-    void filtersTimelineByActivityTextAndSortsByDate() {
-        var activities = dashboardService.timeline("all", "window", "latest");
-
-        assertEquals(1, activities.size());
-        assertEquals("(Mobile assignment) View from your window", activities.get(0).title());
-        assertEquals("Wednesday, 23 December 2026", activities.get(0).formattedDate());
-    }
 }

@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 public class GradebookService {
@@ -43,6 +45,12 @@ public class GradebookService {
         // Kiểm tra quyền trước khi lấy nội dung bài làm và thông tin điểm của học viên.
         requireManager(courseId, email);
         return gradebookRepository.findSubmissionsForGrading(courseId);
+    }
+
+    @Transactional(readOnly = true)
+    public String courseTitleForGrading(Long courseId, String email) {
+        requireManager(courseId, email);
+        return gradebookRepository.findCourseTitle(courseId);
     }
 
     @Transactional(readOnly = true)
@@ -84,6 +92,7 @@ public class GradebookService {
 
     private Long requireManager(Long courseId, String email) {
         Long userId = workflowRepository.requireActiveUserId(email);
+        workflowRepository.requireCourseNotArchived(courseId);
         // Chặn học viên hoặc người ngoài khóa truy cập chức năng quản lý điểm.
         if (!workflowRepository.canManageCourse(userId, courseId)) {
             throw new ResponseStatusException(
@@ -101,6 +110,40 @@ public class GradebookService {
         public StudentOverview {
             grades = List.copyOf(grades);
             courseProgress = List.copyOf(courseProgress);
+        }
+
+        public long publishedGradeCount() {
+            return grades.stream().filter(grade -> grade.score() != null).count();
+        }
+
+        public BigDecimal averagePublishedPercentage() {
+            List<StudentGradeRow> publishedGrades = grades.stream()
+                    .filter(grade -> grade.score() != null && grade.maxGrade() != null
+                            && grade.maxGrade().signum() > 0)
+                    .toList();
+            if (publishedGrades.isEmpty()) {
+                return null;
+            }
+            BigDecimal totalPercent = publishedGrades.stream()
+                    .map(grade -> grade.score()
+                            .multiply(BigDecimal.valueOf(100))
+                            .divide(grade.maxGrade(), 2, RoundingMode.HALF_UP))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return totalPercent.divide(
+                    BigDecimal.valueOf(publishedGrades.size()), 1, RoundingMode.HALF_UP);
+        }
+
+        public long completedActivityCount() {
+            return courseProgress.stream().mapToLong(StudentCourseProgress::completedActivities).sum();
+        }
+
+        public long totalActivityCount() {
+            return courseProgress.stream().mapToLong(StudentCourseProgress::totalActivities).sum();
+        }
+
+        public int overallProgressPercent() {
+            long total = totalActivityCount();
+            return total == 0 ? 0 : (int) Math.round(100.0 * completedActivityCount() / total);
         }
     }
 }

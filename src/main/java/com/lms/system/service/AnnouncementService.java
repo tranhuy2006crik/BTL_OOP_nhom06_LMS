@@ -31,6 +31,7 @@ public class AnnouncementService {
     @Transactional(readOnly = true)
     public List<AnnouncementResponse> list(Long courseId, String email) {
         Long userId = repository.requireActiveUserId(email);
+        repository.requireCourseNotArchived(courseId);
         boolean canManage = repository.canManageCourse(userId, courseId);
         // Học viên phải có membership ACTIVE; người ngoài khóa không được đọc thông báo riêng.
         if (!canManage && !repository.isActiveStudent(userId, courseId)) {
@@ -40,6 +41,7 @@ public class AnnouncementService {
     }
 
     private void requireManager(Long userId, Long courseId) {
+        repository.requireCourseNotArchived(courseId);
         if (!repository.canManageCourse(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ giảng viên của khóa học mới được đăng thông báo");
         }

@@ -43,9 +43,16 @@ public class GradebookRepository {
                 JOIN assignments ass ON ass.activity_id = a.id
                 LEFT JOIN submissions s ON s.assignment_id = ass.activity_id
                     AND s.student_id = cm.user_id
+                    AND s.attempt_number = (
+                        SELECT MAX(latest.attempt_number)
+                        FROM submissions latest
+                        WHERE latest.assignment_id = ass.activity_id
+                          AND latest.student_id = cm.user_id
+                    )
                 -- Chỉ nối điểm đã công bố; điểm và nhận xét chưa công bố luôn được trả về rỗng cho học viên.
                 LEFT JOIN grades g ON g.submission_id = s.id AND g.released_at IS NOT NULL
                 WHERE cm.user_id = ? AND cm.status = 'ACTIVE' AND r.code = 'STUDENT'
+                  AND cm.role_scope = 'COURSE' AND r.scope = 'COURSE'
                   AND c.status = 'PUBLISHED'
                 ORDER BY c.title, ass.due_at, a.position, s.attempt_number DESC
                 """, (resultSet, rowNumber) -> new StudentGradeRow(
@@ -80,6 +87,7 @@ public class GradebookRepository {
                 LEFT JOIN activity_completions ac
                     ON ac.activity_id = a.id AND ac.user_id = cm.user_id
                 WHERE cm.user_id = ? AND cm.status = 'ACTIVE' AND r.code = 'STUDENT'
+                  AND cm.role_scope = 'COURSE' AND r.scope = 'COURSE'
                   AND c.status = 'PUBLISHED'
                 GROUP BY c.id, c.title
                 ORDER BY c.title
@@ -113,43 +121,55 @@ public class GradebookRepository {
                 """, (resultSet, rowNumber) -> toSubmissionForGrading(resultSet), courseId);
     }
 
+    public String findCourseTitle(Long courseId) {
+        List<String> titles = jdbcTemplate.query(
+                "SELECT title FROM courses WHERE id = ?",
+                (resultSet, rowNumber) -> resultSet.getString("title"),
+                courseId
+        );
+        if (titles.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khóa học");
+        }
+        return titles.get(0);
+    }
+
     public List<GradingCourseRow> findCoursesForGrading(Long userId) {
-                return jdbcTemplate.query("""
-                        SELECT c.id AS course_id, c.title AS course_title,
-                               COUNT(DISTINCT s.id) AS submission_count,
-                               COUNT(DISTINCT CASE WHEN s.id IS NOT NULL AND g.submission_id IS NULL
-                                                   THEN s.id END) AS ungraded_count,
-                               COUNT(DISTINCT CASE WHEN g.submission_id IS NOT NULL
-                                                        AND g.released_at IS NULL
-                                                   THEN s.id END) AS awaiting_release_count
-                        FROM courses c
-                        LEFT JOIN course_sections cs ON cs.course_id = c.id
-                        LEFT JOIN activities a ON a.section_id = cs.id AND a.activity_type = 'ASSIGNMENT'
-                        LEFT JOIN assignments ass ON ass.activity_id = a.id
-                        LEFT JOIN submissions s ON s.assignment_id = ass.activity_id
-                            AND s.status IN ('SUBMITTED', 'LATE')
-                        LEFT JOIN grades g ON g.submission_id = s.id
-                        WHERE EXISTS (
-                            SELECT 1
-                            FROM course_memberships cm
-                            JOIN roles r ON r.id = cm.role_id AND r.scope = cm.role_scope
-                            WHERE cm.user_id = ? AND cm.course_id = c.id AND cm.status = 'ACTIVE'
-                              AND r.code = 'TEACHER'
-                        ) OR EXISTS (
-                            SELECT 1
-                            FROM system_role_assignments sra
-                            JOIN roles r ON r.id = sra.role_id AND r.scope = sra.role_scope
-                            WHERE sra.user_id = ? AND r.code = 'ADMIN' AND r.scope = 'SYSTEM'
-                        )
-                        GROUP BY c.id, c.title
-                        ORDER BY c.title
-                        """, (resultSet, rowNumber) -> new GradingCourseRow(
-                        resultSet.getLong("course_id"),
-                        resultSet.getString("course_title"),
-                        resultSet.getLong("submission_count"),
-                        resultSet.getLong("ungraded_count"),
-                        resultSet.getLong("awaiting_release_count")
-                ), userId, userId);
+        return jdbcTemplate.query("""
+                SELECT c.id AS course_id, c.title AS course_title,
+                       COUNT(DISTINCT s.id) AS submission_count,
+                       COUNT(DISTINCT CASE WHEN s.id IS NOT NULL AND g.submission_id IS NULL
+                                           THEN s.id END) AS ungraded_count,
+                       COUNT(DISTINCT CASE WHEN g.submission_id IS NOT NULL
+                                                AND g.released_at IS NULL
+                                           THEN s.id END) AS awaiting_release_count
+                FROM courses c
+                LEFT JOIN course_sections cs ON cs.course_id = c.id
+                LEFT JOIN activities a ON a.section_id = cs.id AND a.activity_type = 'ASSIGNMENT'
+                LEFT JOIN assignments ass ON ass.activity_id = a.id
+                LEFT JOIN submissions s ON s.assignment_id = ass.activity_id
+                    AND s.status IN ('SUBMITTED', 'LATE')
+                LEFT JOIN grades g ON g.submission_id = s.id
+                WHERE c.status <> 'ARCHIVED' AND (EXISTS (
+                    SELECT 1
+                    FROM course_memberships cm
+                    JOIN roles r ON r.id = cm.role_id AND r.scope = cm.role_scope
+                    WHERE cm.user_id = ? AND cm.course_id = c.id AND cm.status = 'ACTIVE'
+                      AND r.code = 'TEACHER' AND r.scope = 'COURSE'
+                ) OR EXISTS (
+                    SELECT 1
+                    FROM system_role_assignments sra
+                    JOIN roles r ON r.id = sra.role_id AND r.scope = sra.role_scope
+                    WHERE sra.user_id = ? AND r.code = 'ADMIN' AND r.scope = 'SYSTEM'
+                ))
+                GROUP BY c.id, c.title
+                ORDER BY c.title
+                """, (resultSet, rowNumber) -> new GradingCourseRow(
+                resultSet.getLong("course_id"),
+                resultSet.getString("course_title"),
+                resultSet.getLong("submission_count"),
+                resultSet.getLong("ungraded_count"),
+                resultSet.getLong("awaiting_release_count")
+        ), userId, userId);
     }
 
     public BigDecimal lockSubmissionMaxGrade(Long courseId, Long submissionId) {

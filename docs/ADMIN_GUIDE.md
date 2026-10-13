@@ -54,3 +54,35 @@ Students use **Browse courses** to find published courses and enroll. Enrolled
 students then see the course in **My courses** and **Dashboard**, where they
 can open visible sections, lessons, and published announcements. A student
 cannot access a course's private content before enrollment.
+
+Archived courses cannot be opened through course pages or lesson and
+announcement endpoints. Their learning data remains in the database; an
+administrator can restore access by changing the course status from the course
+edit page.
+
+## Assignments and learning files
+
+An active instructor opens a course section and uses **Bài tập** to create or
+edit an assignment, set its due date, maximum grade, late-submission policy,
+and optionally attach instructions. Instructors use **Tài liệu học tập** to
+publish downloadable files for that section. Enrolled students can submit text,
+files, or both, and can submit another attempt when needed. The grading page
+shows links to the files attached to each submission.
+
+Instructors open **Chấm điểm** to review submitted attempts, enter a score up
+to the assignment's maximum grade, and add feedback. Saving a grade keeps it
+private; use **Công bố điểm** when it is ready for the student. Editing a
+published grade makes it private again until it is published again. Students
+open **Điểm** to see published scores and feedback, plus their progress across
+visible course activities. They can mark lessons and learning files complete;
+an assignment is completed automatically after a submission is made.
+
+Course files are stored outside MySQL in the directory configured by
+`lms.course-files.storage-directory` (default: `./data/course-files`); the
+database stores file metadata and links. The application accepts PDF,
+PowerPoint, Word, ODP, ODT, and TXT files, up to 20 MB per file and 5 files per
+upload, with a 50 MB combined file limit. The multipart request limit should be
+at least 55 MB; the example configuration sets it to 20 MB per file and 55 MB
+per request. Back up the storage directory together with the database so
+existing file links remain valid. Files written for an operation are removed
+if its database transaction rolls back.

@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 
 import com.lms.system.dto.AnnouncementResponse;
 import com.lms.system.dto.AnnouncementRequest;
+import com.lms.system.dto.AssignmentForm;
 import com.lms.system.dto.CourseSectionRequest;
 import com.lms.system.dto.LessonRequest;
 import com.lms.system.dto.LessonResponse;
@@ -26,6 +27,8 @@ import com.lms.system.model.Course;
 import com.lms.system.repository.CourseRepository;
 import com.lms.system.repository.LmsWorkflowRepository;
 import com.lms.system.service.AnnouncementService;
+import com.lms.system.service.ActivityCompletionService;
+import com.lms.system.service.CourseworkService;
 import com.lms.system.service.LessonService;
 import com.lms.system.service.ProfileService;
 
@@ -38,19 +41,25 @@ public class CoursePageController {
     private final CourseRepository courseRepository;
     private final LmsWorkflowRepository workflowRepository;
     private final ProfileService profileService;
+    private final CourseworkService courseworkService;
+    private final ActivityCompletionService activityCompletionService;
 
     public CoursePageController(
             LessonService lessonService,
             AnnouncementService announcementService,
             CourseRepository courseRepository,
             LmsWorkflowRepository workflowRepository,
-            ProfileService profileService
+            ProfileService profileService,
+            CourseworkService courseworkService,
+            ActivityCompletionService activityCompletionService
     ) {
         this.lessonService = lessonService;
         this.announcementService = announcementService;
         this.courseRepository = courseRepository;
         this.workflowRepository = workflowRepository;
         this.profileService = profileService;
+        this.courseworkService = courseworkService;
+        this.activityCompletionService = activityCompletionService;
     }
 
     @GetMapping("/{courseId}")
@@ -67,9 +76,10 @@ public class CoursePageController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported theme");
         }
 
+        Long userId = workflowRepository.requireActiveUserId(principal.getName());
+        workflowRepository.requireCourseNotArchived(courseId);
         Course course = courseRepository.findWithCategoryById(courseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khóa học"));
-        Long userId = workflowRepository.requireActiveUserId(principal.getName());
         boolean canManage = workflowRepository.canManageCourse(userId, courseId);
         if (!canManage && !workflowRepository.isActiveStudent(userId, courseId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập khóa học");
@@ -156,6 +166,8 @@ public class CoursePageController {
         String email = principal.getName();
         List<LessonResponse> lessons = lessonService.list(courseId, sectionId, email);
         List<AnnouncementResponse> announcements = announcementService.list(courseId, email);
+        CourseworkService.SectionCoursework coursework =
+                courseworkService.sectionCoursework(courseId, sectionId, email);
         Long userId = workflowRepository.requireActiveUserId(email);
         boolean canManage = workflowRepository.canManageCourse(userId, courseId);
         Course course = courseRepository.findWithCategoryById(courseId)
@@ -174,7 +186,14 @@ public class CoursePageController {
         model.addAttribute("courseId", courseId);
         model.addAttribute("sectionId", sectionId);
         model.addAttribute("lessons", lessons);
+        model.addAttribute("assignments", coursework.assignments());
+        model.addAttribute("resources", coursework.resources());
         model.addAttribute("announcements", announcements);
+        model.addAttribute(
+                "completedActivityIds",
+                canManage ? java.util.Set.of()
+                        : activityCompletionService.completedActivityIds(courseId, sectionId, email));
+        model.addAttribute("assignmentForm", new AssignmentForm());
         model.addAttribute("title", section.title());
 
         return "courses/course-detail";

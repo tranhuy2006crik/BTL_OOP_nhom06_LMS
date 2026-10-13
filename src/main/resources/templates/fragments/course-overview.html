@@ -42,9 +42,6 @@
         </label>
         <input type="hidden" name="theme" th:value="${theme}">
         <th:block th:if="${pagePath == '/dashboard'}">
-            <input type="hidden" name="timelineFilter" th:value="${timelineFilter}">
-            <input type="hidden" name="timelineSort" th:value="${timelineSort}">
-            <input type="hidden" name="timelineQuery" th:value="${timelineQuery}">
             <input type="hidden" name="month" th:value="${calendarMonth}">
             <input type="hidden" name="day" th:value="${selectedDay}">
         </th:block>

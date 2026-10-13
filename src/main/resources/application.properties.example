@@ -10,8 +10,11 @@ spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.open-in-view=false
 
-spring.servlet.multipart.max-file-size=2MB
-spring.servlet.multipart.max-request-size=3MB
+spring.servlet.multipart.max-file-size=20MB
+spring.servlet.multipart.max-request-size=55MB
+
+# Course attachments are stored outside the database under this application-local directory.
+lms.course-files.storage-directory=./data/course-files
 
 # Optional Base64-encoded 256-bit (or longer) HMAC key for JWT signing.
 # Generate one with: openssl rand -base64 32

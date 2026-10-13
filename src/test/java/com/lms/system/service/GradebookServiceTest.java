@@ -1,6 +1,8 @@
 package com.lms.system.service;
 
 import com.lms.system.dto.GradeForm;
+import com.lms.system.dto.StudentCourseProgress;
+import com.lms.system.dto.StudentGradeRow;
 import com.lms.system.repository.GradebookRepository;
 import com.lms.system.repository.LmsWorkflowRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +18,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,6 +93,49 @@ class GradebookServiceTest {
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
         verify(gradebookRepository, never()).releaseGrade(3L, 19L);
+    }
+
+    @Test
+    void archivedCourseCannotBeGraded() {
+        when(workflowRepository.requireActiveUserId("teacher@example.com")).thenReturn(7L);
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+                .when(workflowRepository).requireCourseNotArchived(3L);
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> gradebookService.saveGrade(3L, 19L, gradeForm("80", null), "teacher@example.com")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        verify(gradebookRepository, never()).saveGrade(19L, 7L, new BigDecimal("80"), null);
+    }
+
+    @Test
+    void studentOverviewSummarizesOnlyPublishedScoresAndProgress() {
+        when(workflowRepository.requireActiveUserId("student@example.com")).thenReturn(11L);
+        when(gradebookRepository.findStudentGrades(11L)).thenReturn(java.util.List.of(
+                gradeRow(1L, new BigDecimal("8.00"), new BigDecimal("10.00")),
+                gradeRow(2L, new BigDecimal("15.00"), new BigDecimal("20.00")),
+                gradeRow(3L, null, new BigDecimal("100.00"))
+        ));
+        when(gradebookRepository.findStudentProgress(11L)).thenReturn(java.util.List.of(
+                new StudentCourseProgress(3L, "Java", 4L, 2L),
+                new StudentCourseProgress(4L, "OOP", 0L, 0L)
+        ));
+
+        GradebookService.StudentOverview overview = gradebookService.studentOverview("student@example.com");
+
+        assertEquals(2L, overview.publishedGradeCount());
+        assertEquals(new BigDecimal("77.5"), overview.averagePublishedPercentage());
+        assertEquals(2L, overview.completedActivityCount());
+        assertEquals(4L, overview.totalActivityCount());
+        assertEquals(50, overview.overallProgressPercent());
+    }
+
+    private static StudentGradeRow gradeRow(Long assignmentId, BigDecimal score, BigDecimal maxGrade) {
+        return new StudentGradeRow(
+                3L, "Java", assignmentId, "Assignment " + assignmentId, maxGrade, null,
+                assignmentId, 1, "SUBMITTED", null, score, null, null);
     }
 
     private static GradeForm gradeForm(String score, String feedback) {

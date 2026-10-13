@@ -144,6 +144,56 @@ class AdminControllerTest {
     }
 
     @Test
+    void archivedCourseCannotBeOpenedOrChangedThroughCoursePages() throws Exception {
+        Course course = courseRepository.saveAndFlush(Course.create(
+                "ARCH-" + UUID.randomUUID(),
+                "Archived course",
+                "Archived course test",
+                CourseStatus.ARCHIVED,
+                null,
+                null,
+                null,
+                authenticatedAdmin.getId()
+        ));
+        jdbcTemplate.update("""
+                INSERT INTO course_sections (course_id, title, description, position, status)
+                VALUES (?, 'Archived section', NULL, 1, 'VISIBLE')
+                """, course.getId());
+        Long sectionId = jdbcTemplate.queryForObject(
+                "SELECT id FROM course_sections WHERE course_id = ?", Long.class, course.getId());
+
+        mockMvc.perform(get("/courses/{courseId}", course.getId()).with(user(authenticatedAdmin)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/courses/{courseId}/sections/{sectionId}", course.getId(), sectionId)
+                        .with(user(authenticatedAdmin)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/courses/{courseId}/sections", course.getId())
+                        .with(user(authenticatedAdmin))
+                        .with(csrf())
+                        .param("title", "New section"))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(post("/courses/{courseId}/announcements", course.getId())
+                        .with(user(authenticatedAdmin))
+                        .with(csrf())
+                        .param("title", "Announcement")
+                        .param("content", "Archived course notice"))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(post("/courses/{courseId}/sections/{sectionId}/lessons", course.getId(), sectionId)
+                        .with(user(authenticatedAdmin))
+                        .with(csrf())
+                        .param("title", "New lesson")
+                        .param("content", "Archived course content"))
+                .andExpect(status().is3xxRedirection());
+
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM course_sections WHERE course_id = ?", Integer.class, course.getId()));
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM course_announcements WHERE course_id = ?", Integer.class, course.getId()));
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM activities WHERE section_id = ?", Integer.class, sectionId));
+    }
+
+    @Test
     void sampleCourseCardsOpenTheirDetailsPage() throws Exception {
         mockMvc.perform(get("/courses/demo/psychology-in-cinema").with(user(authenticatedAdmin)))
                 .andExpect(status().isOk())
