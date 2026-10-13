@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Điểm và tiến độ - PTIT Learn</title>
+
+<main class="gradebook-page">
+    <section class="gradebook-header">
+        <div>
+            <p class="eyebrow">KẾT QUẢ HỌC TẬP</p>
+            <h1>Điểm và tiến độ</h1>
+            <p>Theo dõi tiến độ khóa học, bài đã nộp và điểm được giảng viên công bố.</p>
+        </div>
+        <a class="gradebook-header-link" th:href="@{/home#course-overview}">Tiếp tục học <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="gradebook-summary" aria-label="Tóm tắt kết quả học tập">
+        <article class="grade-summary-card">
+            <span class="grade-summary-icon" aria-hidden="true">◷</span>
+            <div><span>Tiến độ tổng thể</span><strong th:text="${overallProgressPercent + '%'}">0%</strong></div>
+            <small th:text="${completedActivityCount + ' / ' + totalActivityCount + ' hoạt động'}">0 / 0 hoạt động</small>
+        </article>
+        <article class="grade-summary-card">
+            <span class="grade-summary-icon" aria-hidden="true">✓</span>
+            <div><span>Điểm đã công bố</span><strong th:text="${publishedGradeCount}">0</strong></div>
+            <small>bài tập đã có kết quả</small>
+        </article>
+        <article class="grade-summary-card">
+            <span class="grade-summary-icon" aria-hidden="true">★</span>
+            <div><span>Điểm trung bình</span>
+                <strong th:if="${averagePublishedPercentage != null}"
+                        th:text="${averagePublishedPercentage.stripTrailingZeros().toPlainString() + '%'}">—</strong>
+                <strong th:if="${averagePublishedPercentage == null}">—</strong>
+            </div>
+            <small>tính theo tỷ lệ điểm tối đa</small>
+        </article>
+    </section>
+
+    <section class="gradebook-section progress-section">
+        <div class="grade-section-heading">
+            <div>
+                <p class="eyebrow">TIẾN TRÌNH</p>
+                <h2>Tiến độ khóa học</h2>
+            </div>
+            <span class="grade-section-count" th:text="${#lists.size(courseProgress) + ' khóa học'}">0 khóa học</span>
+        </div>
+        <div th:if="${#lists.isEmpty(courseProgress)}" class="gradebook-empty">
+            Bạn chưa ghi danh khóa học nào.
+        </div>
+        <article class="progress-card" th:each="progress : ${courseProgress}">
+            <div class="progress-card-heading">
+                <div>
+                    <span class="progress-course-label">KHÓA HỌC</span>
+                    <h3 th:text="${progress.courseTitle}">Tên khóa học</h3>
+                </div>
+                <strong class="progress-percent" th:text="${progress.percent + '%'}">0%</strong>
+            </div>
+            <div class="progress-track" role="progressbar" aria-label="Tiến độ khóa học"
+                 th:attr="aria-valuenow=${progress.percent},aria-valuemin=0,aria-valuemax=100">
+                <span th:style="'width: ' + ${progress.percent} + '%'"></span>
+            </div>
+            <div class="progress-card-footer">
+                <span th:text="${progress.completedActivities + ' / ' + progress.totalActivities + ' hoạt động hoàn thành'}">
+                    0 / 0 hoạt động hoàn thành
+                </span>
+                <a th:href="@{/courses/{courseId}(courseId=${progress.courseId})}">Mở khóa học <span aria-hidden="true">→</span></a>
+            </div>
+        </article>
+    </section>
+
+    <section class="gradebook-section grade-results-section">
+        <div class="grade-section-heading">
+            <div>
+                <p class="eyebrow">ĐÁNH GIÁ</p>
+                <h2>Điểm từng bài</h2>
+            </div>
+            <span class="grade-section-count" th:text="${#lists.size(grades) + ' bài tập'}">0 bài tập</span>
+        </div>
+        <p class="gradebook-privacy-note"><span aria-hidden="true">ⓘ</span> Điểm và nhận xét chỉ hiển thị sau khi giảng viên công bố.</p>
+        <div th:if="${#lists.isEmpty(grades)}" class="gradebook-empty">
+            Chưa có bài tập nào trong các khóa học bạn đang tham gia.
+        </div>
+        <div class="grade-table-wrap" th:unless="${#lists.isEmpty(grades)}">
+            <table class="grade-table">
+                <thead>
+                <tr>
+                    <th>Khóa học / Bài tập</th>
+                    <th>Lần nộp</th>
+                    <th>Trạng thái</th>
+                    <th>Điểm</th>
+                    <th>Nhận xét</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="grade : ${grades}">
+                    <td>
+                        <strong th:text="${grade.courseTitle}">Khóa học</strong>
+                        <span class="grade-secondary" th:text="${grade.assignmentTitle}">Bài tập</span>
+                        <span class="grade-secondary" th:if="${grade.dueAt != null}"
+                              th:text="'Hạn nộp: ' + ${#temporals.format(grade.dueAt, 'dd/MM/yyyy HH:mm')}">Hạn nộp</span>
+                    </td>
+                    <td th:text="${grade.attemptNumber == null ? '—' : grade.attemptNumber}">—</td>
+                    <td>
+                        <span class="grade-status-pill status-not-submitted" th:if="${grade.submissionId == null}">Chưa nộp</span>
+                        <span class="grade-status-pill status-waiting" th:if="${grade.submissionId != null and grade.score == null and grade.submissionStatus == 'DRAFT'}">Bản nháp</span>
+                        <span class="grade-status-pill status-waiting" th:if="${grade.submissionId != null and grade.score == null and grade.submissionStatus == 'SUBMITTED'}">
+                            Chờ chấm / công bố
+                        </span>
+                        <span class="grade-status-pill status-late" th:if="${grade.submissionId != null and grade.score == null and grade.submissionStatus == 'LATE'}">
+                            Đã nộp trễ · chờ công bố
+                        </span>
+                        <span class="grade-status-pill status-published" th:if="${grade.score != null}">
+                            Đã công bố
+                        </span>
+                        <span class="grade-secondary" th:if="${grade.submittedAt != null}"
+                              th:text="${#temporals.format(grade.submittedAt, 'dd/MM/yyyy HH:mm')}">Ngày nộp</span>
+                    </td>
+                    <td>
+                        <strong class="published-score" th:if="${grade.score != null}"
+                                th:text="${grade.score.stripTrailingZeros().toPlainString() + ' / ' + grade.maxGrade.stripTrailingZeros().toPlainString()}">0 / 100</strong>
+                        <span class="pending-score" th:if="${grade.score == null}">
+                            — <span th:text="'/ ' + ${grade.maxGrade.stripTrailingZeros().toPlainString()}">/ 100</span>
+                        </span>
+                    </td>
+                    <td class="grade-feedback-cell">
+                        <span th:if="${grade.feedback != null and !grade.feedback.isBlank()}"
+                              th:text="${grade.feedback}">Nhận xét</span>
+                        <span class="grade-secondary" th:if="${grade.feedback == null or grade.feedback.isBlank()}">Chưa có nhận xét</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</html>

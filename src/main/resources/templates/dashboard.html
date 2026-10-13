@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Dashboard - PTIT Learn</title>
+<main class="page dashboard-page" id="page-top">
+    <div class="dashboard-toolbar">
+        <p class="page-kicker">YOUR LEARNING SPACE</p>
+    </div>
+
+    <div class="dashboard-layout">
+        <div class="dashboard-main-column">
+            <section class="welcome-panel" aria-labelledby="dashboard-heading">
+                <div class="welcome-panel-copy">
+                    <span class="welcome-spark" aria-hidden="true">✦</span>
+                    <p class="welcome-overline" th:text="${todayLabel}">Monday, 5 October 2026</p>
+                    <h1 id="dashboard-heading">Welcome back, <span th:text="${user.fullName}">Learner</span>!</h1>
+                    <p>Here’s what’s happening in your learning space. Keep the momentum going!</p>
+                    <div class="welcome-actions">
+                        <a class="welcome-primary-link" href="#course-overview">Explore my courses <span aria-hidden="true">→</span></a>
+                        <a class="welcome-secondary-link" th:href="@{/courses/catalog(theme=${theme})}">Browse courses</a>
+                        <a class="welcome-secondary-link" th:href="@{/profile}">View profile</a>
+                    </div>
+                </div>
+                <div class="welcome-illustration" aria-hidden="true">
+                    <span class="welcome-blob"></span>
+                    <span class="welcome-book">✧</span>
+                    <span class="welcome-star welcome-star-one">✦</span>
+                    <span class="welcome-star welcome-star-two">✧</span>
+                </div>
+            </section>
+
+            <section class="dashboard-intro-card" aria-labelledby="intro-heading">
+                <div class="intro-icon" aria-hidden="true">✺</div>
+                <div>
+                    <h2 id="intro-heading">Your learning at a glance</h2>
+                    <p>Find your courses, check upcoming activities, and stay up to date with your learning community.</p>
+                    <a th:href="@{/home#course-overview}">Open My courses <span aria-hidden="true">→</span></a>
+                </div>
+            </section>
+
+            <section th:replace="~{fragments/course-overview :: overview(
+                    ${courses}, ${courseCount}, ${status}, ${query}, ${sort}, ${view}, ${theme}, '/dashboard')}">
+            </section>
+
+        </div>
+
+        <aside class="dashboard-side-column" aria-label="Dashboard blocks">
+            <section class="calendar-panel" aria-labelledby="calendar-heading">
+                <div class="side-panel-heading">
+                    <h2 id="calendar-heading">Calendar</h2>
+                    <span class="calendar-accent" aria-hidden="true">✦</span>
+                </div>
+                <div class="calendar-month-nav">
+                    <a th:href="@{/dashboard(month=${previousMonth},theme=${theme},status=${status},q=${query},
+                            sort=${sort},view=${view},day=1)}"
+                       aria-label="Previous month">‹</a>
+                    <span th:text="${calendarMonthLabel}">October 2026</span>
+                    <a th:href="@{/dashboard(month=${nextMonth},theme=${theme},status=${status},q=${query},
+                            sort=${sort},view=${view},day=1)}"
+                       aria-label="Next month">›</a>
+                </div>
+                <div class="calendar-grid" role="grid" aria-label="Calendar">
+                    <span class="weekday-label" th:each="weekday : ${weekdays}" th:text="${weekday}">Mon</span>
+                    <th:block th:each="cell : ${calendarCells}">
+                        <span class="calendar-day calendar-blank" th:if="${cell.day.isEmpty()}"></span>
+                        <a class="calendar-day" th:unless="${cell.day.isEmpty()}"
+                           th:classappend="${cell.selected} ? ' calendar-selected' : (${cell.today} ? ' calendar-today' : '')"
+                           th:attr="aria-current=${cell.today} ? 'date' : null,
+                                    aria-label=${calendarMonthLabel + ' ' + cell.day}"
+                           th:href="@{/dashboard(month=${calendarMonth},day=${cell.day},theme=${theme},status=${status},q=${query},
+                                   sort=${sort},view=${view})}">
+                            <span th:text="${cell.day}">1</span>
+                            <i th:if="${cell.hasEvent}" aria-hidden="true"></i>
+                        </a>
+                    </th:block>
+                </div>
+                <p class="calendar-selection">
+                    Selected <strong th:text="${calendarMonthLabel} + ' ' + ${selectedDay}">October 5</strong>
+                </p>
+                <div class="calendar-links">
+                    <a th:href="@{/calendar(month=${calendarMonth},day=${selectedDay})}">Full calendar</a>
+                    <span aria-hidden="true">·</span>
+                    <a th:href="@{/calendar(month=${calendarMonth},day=${selectedDay})}">Import or export calendars</a>
+                </div>
+            </section>
+
+            <section class="announcement-panel" aria-labelledby="announcements-heading">
+                <div class="side-panel-heading">
+                    <h2 id="announcements-heading">Latest announcements</h2>
+                    <span class="announcement-icon" aria-hidden="true">✳</span>
+                </div>
+                <div class="empty-state" th:if="${#lists.isEmpty(announcements)}">
+                    No announcements from your courses yet.
+                </div>
+                <article class="announcement" th:each="announcement : ${announcements}">
+                    <p class="announcement-meta"
+                       th:text="${#temporals.format(announcement.publishedAt, 'dd MMM yyyy, HH:mm')}">Published date</p>
+                    <p class="announcement-author" th:text="${announcement.courseTitle}">Course</p>
+                    <a th:href="@{/courses/{id}(id=${announcement.courseId},theme=${theme})}"
+                       th:text="${announcement.title}">Announcement title</a>
+                    <p th:text="${announcement.content}">Announcement content</p>
+                </article>
+            </section>
+
+        </aside>
+    </div>
+</main>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title th:text="${course.title} + ' - PTIT Learn'">Course - PTIT Learn</title>
+<main class="page course-page">
+    <a class="admin-back-link" th:href="@{/home(theme=${theme})}">← Back to My courses</a>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+    <section class="admin-panel">
+        <p class="page-kicker">COURSE OVERVIEW</p>
+        <h1 th:text="${course.title}">Course title</h1>
+        <p class="admin-subtitle" th:text="${course.courseCode}">COURSE-CODE</p>
+        <div class="admin-detail-row">
+            <span>Instructor</span>
+            <strong th:text="${instructors}">Course instructors</strong>
+        </div>
+        <div class="admin-detail-row">
+            <span>Category</span>
+            <strong th:text="${course.category == null ? 'Uncategorized' : course.category.name}">Category</strong>
+        </div>
+        <div class="admin-detail-row">
+            <span>Status</span>
+            <strong th:text="${course.status}">PUBLISHED</strong>
+        </div>
+        <div class="admin-description" th:if="${course.description != null}">
+            <h2>About this course</h2>
+            <p th:text="${course.description}">Course description</p>
+        </div>
+    </section>
+
+    <section class="admin-panel">
+        <h2>Course sections</h2>
+        <form class="admin-form" th:if="${canManage}"
+              th:action="@{/courses/{id}/sections(id=${course.id})}" method="post">
+            <input type="hidden" name="theme" th:value="${theme}">
+            <label>Section title<input type="text" name="title" maxlength="200" required></label>
+            <label>Description<textarea name="description" rows="2"></textarea></label>
+            <button class="btn" type="submit">Add section</button>
+        </form>
+        <div class="admin-empty-cell" th:if="${#lists.isEmpty(sections)}">
+            Course content has not been added yet.
+        </div>
+        <div class="admin-detail-row" th:each="section : ${sections}">
+            <div>
+                <strong th:text="|${section.position}. ${section.title}|">Section title</strong>
+                <p th:if="${section.description != null}" th:text="${section.description}">Section description</p>
+            </div>
+            <a class="admin-inline-link"
+               th:href="@{/courses/{courseId}/sections/{sectionId}(courseId=${course.id},sectionId=${section.id})}">
+                Open section
+            </a>
+        </div>
+    </section>
+
+    <section class="admin-panel">
+        <h2>Course announcements</h2>
+        <form class="admin-form" th:if="${canManage}"
+              th:action="@{/courses/{id}/announcements(id=${course.id})}" method="post">
+            <input type="hidden" name="theme" th:value="${theme}">
+            <label>Announcement title
+                <input type="text" name="title" maxlength="200" required>
+            </label>
+            <label>Message
+                <textarea name="content" rows="4" required></textarea>
+            </label>
+            <button class="btn" type="submit">Publish announcement</button>
+        </form>
+        <div class="empty-state" th:if="${#lists.isEmpty(announcements)}">No announcements yet.</div>
+        <article class="announcement-item" th:each="announcement : ${announcements}">
+            <div class="meta-row">
+                <span class="status-tag">Published</span>
+                <time th:if="${announcement.publishedAt != null}"
+                      th:text="${#temporals.format(announcement.publishedAt, 'dd/MM/yyyy HH:mm')}">Published date</time>
+            </div>
+            <h3 th:text="${announcement.title}">Announcement title</h3>
+            <p th:text="${announcement.content}">Announcement content</p>
+        </article>
+    </section>
+</main>
+</html>

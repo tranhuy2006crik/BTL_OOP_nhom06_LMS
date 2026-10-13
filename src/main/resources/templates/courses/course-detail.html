@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Nội dung khóa học - PTIT Learn</title>
+
+<main class="course-page course-section-page"
+      th:classappend="${canManage} ? ' teacher-course-view' : ' student-course-view'">
+    <section class="course-hero">
+        <div class="course-hero-copy">
+            <a class="course-breadcrumb" th:href="@{/courses/{id}(id=${courseId},theme=${theme})}">
+                <span aria-hidden="true">←</span>
+                <span th:text="${course.title}">Tên khóa học</span>
+            </a>
+            <p class="eyebrow" th:text="${canManage ? 'KHU VỰC GIẢNG VIÊN' : 'KHÔNG GIAN HỌC TẬP'}">
+                KHÔNG GIAN HỌC TẬP
+            </p>
+            <h1 th:text="${section.title}">Tên chương</h1>
+            <p class="course-hero-description" th:if="${section.description != null and !section.description.isBlank()}"
+               th:text="${section.description}">Mô tả chương</p>
+            <nav class="section-quick-links" aria-label="Điều hướng nội dung chương">
+                <a href="#lessons">Bài học</a>
+                <a href="#assignments">Bài tập</a>
+                <a href="#resources">Tài liệu</a>
+            </nav>
+        </div>
+        <div class="course-badge section-position-badge">
+            <span>CHƯƠNG</span>
+            <strong th:text="${section.position}">1</strong>
+        </div>
+    </section>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
+
+    <div class="section-layout">
+        <aside class="left-panel">
+            <div class="panel-block announcement-panel">
+                <div class="panel-heading">
+                    <span class="panel-icon" aria-hidden="true">✦</span>
+                    <div>
+                        <p class="eyebrow">CẬP NHẬT</p>
+                        <h2>Thông báo khóa học</h2>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(announcements)}" class="empty-state">
+                    Chưa có thông báo nào.
+                </div>
+
+                <article class="announcement-item" th:each="announcement : ${announcements}">
+                    <div class="meta-row">
+                        <span class="status-tag" th:text="${announcement.status == 'PUBLISHED' ? 'Đã đăng' : announcement.status == 'DRAFT' ? 'Bản nháp' : announcement.status}">Đã đăng</span>
+                        <span th:if="${announcement.publishedAt != null}" th:text="${#temporals.format(announcement.publishedAt, 'dd/MM/yyyy HH:mm')}">Thời gian đăng</span>
+                    </div>
+                    <h4 th:text="${announcement.title}">Tiêu đề thông báo</h4>
+                    <p th:text="${announcement.content}">Nội dung thông báo</p>
+                </article>
+            </div>
+        </aside>
+
+        <section class="main-panel">
+            <section class="section-overview" aria-label="Tổng quan nội dung chương">
+                <div>
+                    <p class="eyebrow" th:text="${canManage ? 'TỔNG QUAN QUẢN LÝ' : 'TIẾN TRÌNH HỌC TẬP'}">
+                        TIẾN TRÌNH HỌC TẬP
+                    </p>
+                    <h2>Nội dung chương</h2>
+                </div>
+                <div class="section-stat-list">
+                    <div class="section-stat">
+                        <strong th:text="${#lists.size(lessons)}">0</strong>
+                        <span>Bài học</span>
+                    </div>
+                    <div class="section-stat">
+                        <strong th:text="${#lists.size(assignments)}">0</strong>
+                        <span>Bài tập</span>
+                    </div>
+                    <div class="section-stat">
+                        <strong th:text="${#lists.size(resources)}">0</strong>
+                        <span>Tài liệu</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="lessons" class="lesson-section" aria-labelledby="lessons-heading">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">KIẾN THỨC</p>
+                        <h2 id="lessons-heading">Bài học</h2>
+                    </div>
+                    <span class="section-id" th:text="${#lists.size(lessons)} + ' bài học'">0 bài học</span>
+                </div>
+
+                <details class="teacher-tool lesson-create-tool" th:if="${canManage}">
+                    <summary><span aria-hidden="true">＋</span> Thêm bài học</summary>
+                    <form class="admin-form course-lesson-form"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/lessons(courseId=${courseId},sectionId=${sectionId})}"
+                          method="post">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <label>Tên bài học<input type="text" name="title" maxlength="200" required></label>
+                        <label>Mô tả ngắn<textarea name="description" rows="2"></textarea></label>
+                        <label>Nội dung<textarea name="content" rows="5" required></textarea></label>
+                        <button class="btn" type="submit">Lưu bài học</button>
+                    </form>
+                </details>
+
+                <div th:if="${#lists.isEmpty(lessons)}" class="empty-state large">
+                    Chương này chưa có bài học.
+                </div>
+
+                <article class="lesson-card" th:each="lesson : ${lessons}">
+                    <div class="lesson-topbar">
+                        <span class="lesson-icon" aria-hidden="true">▤</span>
+                        <span class="lesson-position" th:text="'Bài học ' + ${lesson.position}">Bài học 1</span>
+                        <span class="status-tag" th:if="${canManage}"
+                              th:text="${lesson.status == 'VISIBLE' ? 'Đang hiển thị' : lesson.status == 'HIDDEN' ? 'Đã ẩn' : lesson.status}">Đang hiển thị</span>
+                    </div>
+
+                    <h3 th:text="${lesson.title}">Tiêu đề bài học</h3>
+                    <p class="lesson-description" th:if="${lesson.description != null and !lesson.description.isBlank()}"
+                       th:text="${lesson.description}">Mô tả bài học</p>
+
+                    <div class="lesson-content" th:text="${lesson.content}"></div>
+
+                    <form class="activity-completion-form" th:unless="${canManage}"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/activities/{activityId}/completion(courseId=${courseId},sectionId=${sectionId},activityId=${lesson.id})}"
+                          method="post">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <input type="hidden" name="completed"
+                               th:value="${!completedActivityIds.contains(lesson.id)}">
+                        <span class="completion-state" th:if="${completedActivityIds.contains(lesson.id)}">
+                            <span aria-hidden="true">✓</span> Đã hoàn thành
+                        </span>
+                        <button class="completion-action" type="submit"
+                                th:text="${completedActivityIds.contains(lesson.id) ? 'Bỏ đánh dấu' : 'Đánh dấu hoàn thành'}">
+                            Đánh dấu hoàn thành
+                        </button>
+                    </form>
+
+                    <form class="admin-form" th:if="${canManage}"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/lessons/{lessonId}(courseId=${courseId},sectionId=${sectionId},lessonId=${lesson.id})}"
+                          method="post">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <details class="teacher-tool">
+                            <summary>Chỉnh sửa bài học</summary>
+                            <label>Tên bài học<input type="text" name="title" th:value="${lesson.title}" maxlength="200" required></label>
+                            <label>Mô tả ngắn<textarea name="description" rows="2" th:text="${lesson.description}"></textarea></label>
+                            <label>Nội dung<textarea name="content" rows="5" th:text="${lesson.content}" required></textarea></label>
+                            <button class="btn" type="submit">Lưu thay đổi</button>
+                        </details>
+                    </form>
+                    <form class="lesson-hide-form" th:if="${canManage}"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/lessons/{lessonId}/delete(courseId=${courseId},sectionId=${sectionId},lessonId=${lesson.id})}"
+                          method="post"
+                          onsubmit="return confirm('Ẩn bài học này khỏi học viên?');">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <button class="admin-text-danger" type="submit">Ẩn bài học</button>
+                    </form>
+                </article>
+            </section>
+
+            <section id="assignments" class="coursework-section" aria-labelledby="assignments-heading">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">LUYỆN TẬP</p>
+                        <h2 id="assignments-heading">Bài tập</h2>
+                    </div>
+                    <div class="section-heading-actions">
+                        <span class="section-id" th:text="${#lists.size(assignments)} + ' hoạt động'">0 hoạt động</span>
+                        <a class="grading-quick-link" th:if="${canManage}"
+                           th:href="@{/courses/{courseId}/grading(courseId=${courseId})}">
+                            Xem bài nộp &amp; chấm điểm <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </div>
+
+                <details class="teacher-tool teacher-assignment-tool" th:if="${canManage}">
+                    <summary><span aria-hidden="true">＋</span> Tạo bài tập</summary>
+                    <form class="coursework-form"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/assignments(courseId=${courseId},sectionId=${sectionId})}"
+                          method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <label>Tiêu đề bài tập
+                            <input type="text" name="title" maxlength="200" required>
+                        </label>
+                        <label>Hướng dẫn và yêu cầu
+                            <textarea name="description" rows="4" maxlength="10000"
+                                      placeholder="Mô tả yêu cầu, cách thực hiện và tiêu chí hoàn thành"></textarea>
+                        </label>
+                        <div class="coursework-form-grid">
+                            <label>Hạn nộp
+                                <input type="datetime-local" name="dueAt">
+                            </label>
+                            <label>Điểm tối đa
+                                <input type="number" name="maxGrade" min="0.01" max="99999.99" step="0.01"
+                                       value="100.00" required>
+                            </label>
+                        </div>
+                        <label class="coursework-checkbox">
+                            <input type="checkbox" name="allowLateSubmission" value="true">
+                            Cho phép học viên nộp sau hạn
+                        </label>
+                        <label>Tệp hướng dẫn đính kèm
+                            <input type="file" name="attachments" multiple
+                                   accept=".pdf,.ppt,.pptx,.odp,.doc,.docx,.odt,.txt">
+                            <small>PDF, PowerPoint, Word, ODP, ODT hoặc TXT; tối đa 5 tệp, 20 MB/tệp.</small>
+                        </label>
+                        <button class="btn" type="submit">Đăng bài tập</button>
+                    </form>
+                </details>
+
+                <div th:if="${#lists.isEmpty(assignments)}" class="empty-state">
+                    Chưa có bài tập trong chương này.
+                </div>
+
+                <article class="coursework-card assignment-card" th:each="assignment : ${assignments}">
+                    <header class="coursework-card-header">
+                        <div class="coursework-title-group">
+                            <span class="coursework-icon" aria-hidden="true">✓</span>
+                            <div>
+                                <span class="coursework-type">BÀI TẬP</span>
+                                <h3 th:text="${assignment.title}">Tên bài tập</h3>
+                            </div>
+                        </div>
+                        <span class="status-tag submission-status" th:if="${!canManage}"
+                              th:classappend="${assignment.latestSubmission == null ? ' status-pending' : assignment.latestSubmission.status == 'LATE' ? ' status-late' : ' status-submitted'}"
+                              th:text="${assignment.latestSubmission == null ? 'Chưa nộp' : assignment.latestSubmission.status == 'LATE' ? 'Đã nộp trễ' : 'Đã nộp'}">
+                            Chưa nộp
+                        </span>
+                        <span class="status-tag teacher-status" th:if="${canManage}">Đang giao</span>
+                    </header>
+                    <p class="coursework-description" th:if="${assignment.description != null}"
+                       th:text="${assignment.description}">Hướng dẫn bài tập</p>
+                    <dl class="coursework-meta">
+                        <div><dt>Hạn nộp</dt><dd th:text="${assignment.dueAt == null ? 'Không giới hạn' : #temporals.format(assignment.dueAt, 'dd/MM/yyyy HH:mm')}">Hạn nộp</dd></div>
+                        <div><dt>Điểm tối đa</dt><dd th:text="${assignment.maxGrade.stripTrailingZeros().toPlainString()}">100</dd></div>
+                        <div><dt>Nộp trễ</dt><dd th:text="${assignment.allowLateSubmission ? 'Được phép' : 'Không được phép'}">Không được phép</dd></div>
+                    </dl>
+                    <div class="assignment-completion-note" th:if="${!canManage}">
+                        <span class="completion-state" th:if="${completedActivityIds.contains(assignment.id)}">
+                            <span aria-hidden="true">✓</span> Đã hoàn thành khi nộp bài
+                        </span>
+                        <span class="completion-hint" th:unless="${completedActivityIds.contains(assignment.id)}">
+                            Nộp bài để ghi nhận hoàn thành hoạt động này.
+                        </span>
+                    </div>
+                    <div class="coursework-files" th:if="${!#lists.isEmpty(assignment.files)}">
+                        <h4>Tệp hướng dẫn</h4>
+                        <a th:each="file : ${assignment.files}"
+                           th:href="@{/courses/{courseId}/files/{fileId}(courseId=${courseId},fileId=${file.id})}"
+                           th:text="${file.originalName}">assignment.pdf</a>
+                    </div>
+
+                    <div class="coursework-submission" th:if="${assignment.latestSubmission != null}">
+                        <h4>Bài nộp gần nhất</h4>
+                        <p th:text="|Lần nộp ${assignment.latestSubmission.attemptNumber} · ${#temporals.format(assignment.latestSubmission.submittedAt, 'dd/MM/yyyy HH:mm')}|">
+                            Lần nộp 1
+                        </p>
+                        <div class="coursework-files" th:if="${!#lists.isEmpty(assignment.latestSubmission.files)}">
+                            <a th:each="file : ${assignment.latestSubmission.files}"
+                               th:href="@{/courses/{courseId}/submissions/{submissionId}/files/{fileId}(courseId=${courseId},submissionId=${assignment.latestSubmission.id},fileId=${file.id})}"
+                               th:text="${file.originalName}">submission.pdf</a>
+                        </div>
+                    </div>
+
+                    <form class="coursework-submit-form" th:unless="${canManage}"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/assignments/{assignmentId}/submissions(courseId=${courseId},sectionId=${sectionId},assignmentId=${assignment.id})}"
+                          method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <div class="student-submission-heading">
+                            <span class="submission-pencil" aria-hidden="true">✎</span>
+                            <div>
+                                <h4>Bài làm của bạn</h4>
+                                <p>Nộp nội dung, tệp đính kèm hoặc kết hợp cả hai.</p>
+                            </div>
+                        </div>
+                        <label>Nội dung bài làm
+                            <textarea name="textContent" rows="5" maxlength="100000"
+                                      placeholder="Nhập câu trả lời hoặc ghi chú cho bài nộp"></textarea>
+                        </label>
+                        <label>Tệp bài làm
+                            <input type="file" name="submissionFiles" multiple
+                                   accept=".pdf,.ppt,.pptx,.odp,.doc,.docx,.odt,.txt">
+                            <small>Tối đa 5 tệp; 20 MB mỗi tệp. Cho phép PDF, PowerPoint, Word, ODP, ODT và TXT.</small>
+                        </label>
+                        <button class="btn" type="submit"
+                                th:text="${assignment.latestSubmission == null ? 'Nộp bài' : 'Nộp lại bài'}">Nộp bài</button>
+                    </form>
+
+                    <details class="coursework-edit teacher-tool" th:if="${canManage}">
+                        <summary>Chỉnh sửa thiết lập bài tập</summary>
+                        <form class="coursework-form"
+                              th:action="@{/courses/{courseId}/sections/{sectionId}/assignments/{assignmentId}(courseId=${courseId},sectionId=${sectionId},assignmentId=${assignment.id})}"
+                              method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="theme" th:value="${theme}">
+                            <label>Tiêu đề
+                                <input type="text" name="title" th:value="${assignment.title}" maxlength="200" required>
+                            </label>
+                            <label>Hướng dẫn
+                                <textarea name="description" rows="4" maxlength="10000"
+                                          th:text="${assignment.description}"></textarea>
+                            </label>
+                            <div class="coursework-form-grid">
+                                <label>Hạn nộp
+                                    <input type="datetime-local" name="dueAt"
+                                           th:value="${assignment.dueAt == null ? '' : #temporals.format(assignment.dueAt, 'yyyy-MM-dd''T''HH:mm')}" />
+                                </label>
+                                <label>Điểm tối đa
+                                    <input type="number" name="maxGrade" min="0.01" max="99999.99" step="0.01"
+                                           th:value="${assignment.maxGrade}" required>
+                                </label>
+                            </div>
+                            <label class="coursework-checkbox">
+                                <input type="checkbox" name="allowLateSubmission" value="true"
+                                       th:checked="${assignment.allowLateSubmission}">
+                                Cho phép nộp trễ
+                            </label>
+                            <label>Thêm tệp hướng dẫn
+                                <input type="file" name="attachments" multiple
+                                       accept=".pdf,.ppt,.pptx,.odp,.doc,.docx,.odt,.txt">
+                            </label>
+                            <button class="btn" type="submit">Lưu thay đổi</button>
+                        </form>
+                    </details>
+                </article>
+            </section>
+
+            <section id="resources" class="coursework-section" aria-labelledby="resources-heading">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">MATERIALS</p>
+                        <h2 id="resources-heading">Tài liệu học tập</h2>
+                    </div>
+                    <span class="section-id" th:text="${#lists.size(resources)} + ' tài liệu'">0 tài liệu</span>
+                </div>
+
+                <details class="teacher-tool teacher-resource-tool" th:if="${canManage}">
+                    <summary><span aria-hidden="true">＋</span> Thêm tài liệu học tập</summary>
+                    <form class="coursework-form"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/resources(courseId=${courseId},sectionId=${sectionId})}"
+                          method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <label>Tên tài liệu
+                            <input type="text" name="title" maxlength="200" required>
+                        </label>
+                        <label>Mô tả
+                            <textarea name="description" rows="3" maxlength="10000"></textarea>
+                        </label>
+                        <label>Tệp đính kèm
+                            <input type="file" name="attachments" multiple required
+                                   accept=".pdf,.ppt,.pptx,.odp,.doc,.docx,.odt,.txt">
+                            <small>Tối đa 5 tệp, 20 MB/tệp; tổng dung lượng mỗi lần tải lên tối đa 50 MB.</small>
+                        </label>
+                        <button class="btn" type="submit">Đăng tài liệu</button>
+                    </form>
+                </details>
+
+                <div th:if="${#lists.isEmpty(resources)}" class="empty-state">
+                    Chưa có tài liệu học tập trong chương này.
+                </div>
+                <article class="coursework-card resource-card" th:each="resource : ${resources}">
+                    <div>
+                        <span class="coursework-type">TÀI LIỆU</span>
+                        <h3 th:text="${resource.title}">Tên tài liệu</h3>
+                        <p class="coursework-description" th:if="${resource.description != null}"
+                           th:text="${resource.description}">Mô tả tài liệu</p>
+                    </div>
+                    <div class="coursework-files">
+                        <a th:each="file : ${resource.files}"
+                           th:href="@{/courses/{courseId}/files/{fileId}(courseId=${courseId},fileId=${file.id})}"
+                           th:text="${file.originalName}">lecture.pdf</a>
+                    </div>
+                    <form class="activity-completion-form" th:unless="${canManage}"
+                          th:action="@{/courses/{courseId}/sections/{sectionId}/activities/{activityId}/completion(courseId=${courseId},sectionId=${sectionId},activityId=${resource.id})}"
+                          method="post">
+                        <input type="hidden" name="theme" th:value="${theme}">
+                        <input type="hidden" name="completed"
+                               th:value="${!completedActivityIds.contains(resource.id)}">
+                        <span class="completion-state" th:if="${completedActivityIds.contains(resource.id)}">
+                            <span aria-hidden="true">✓</span> Đã hoàn thành
+                        </span>
+                        <button class="completion-action" type="submit"
+                                th:text="${completedActivityIds.contains(resource.id) ? 'Bỏ đánh dấu' : 'Đánh dấu đã xem'}">
+                            Đánh dấu đã xem
+                        </button>
+                    </form>
+                </article>
+            </section>
+        </section>
+    </div>
+</main>
+</html>

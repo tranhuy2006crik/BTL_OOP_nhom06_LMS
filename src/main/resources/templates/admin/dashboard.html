@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title>Administration - PTIT Learn</title>
+<main class="page admin-page">
+    <div class="admin-heading">
+        <div>
+            <p class="page-kicker">SYSTEM MANAGEMENT</p>
+            <h1>Administration</h1>
+            <p class="admin-subtitle">Manage accounts, course catalog, and learning categories.</p>
+        </div>
+        <span class="admin-role-badge">SYSTEM ADMIN</span>
+    </div>
+
+    <div class="admin-stat-grid">
+        <a class="admin-stat-card" th:href="@{/admin/users}">
+            <span class="admin-stat-icon">♙</span>
+            <span class="admin-stat-label">Total users</span>
+            <strong th:text="${userCount}">0</strong>
+            <small><span th:text="${activeUserCount}">0</span> active · <span th:text="${suspendedUserCount}">0</span> suspended</small>
+        </a>
+        <a class="admin-stat-card" th:href="@{/admin/courses}">
+            <span class="admin-stat-icon">▤</span>
+            <span class="admin-stat-label">Courses</span>
+            <strong th:text="${courseCount}">0</strong>
+            <small><span th:text="${publishedCourseCount}">0</span> published · <span th:text="${draftCourseCount}">0</span> drafts</small>
+        </a>
+        <a class="admin-stat-card" th:href="@{/admin/categories}">
+            <span class="admin-stat-icon">⌘</span>
+            <span class="admin-stat-label">Categories</span>
+            <strong th:text="${categoryCount}">0</strong>
+            <small>Organize the course catalog</small>
+        </a>
+    </div>
+
+    <section class="admin-panel">
+        <div class="admin-panel-heading">
+            <div>
+                <h2>Management tools</h2>
+                <p>Choose a resource to view and manage.</p>
+            </div>
+        </div>
+        <div class="admin-tool-grid">
+            <a class="admin-tool-card" th:href="@{/admin/users}">
+                <span aria-hidden="true">♙</span>
+                <div><strong>User accounts</strong><small>Create, edit, assign administrator access, suspend, and retain deleted accounts.</small></div>
+                <b aria-hidden="true">→</b>
+            </a>
+            <a class="admin-tool-card" th:href="@{/admin/courses}">
+                <span aria-hidden="true">▤</span>
+                <div><strong>Courses</strong><small>Create and update courses, set dates and status, or archive them.</small></div>
+                <b aria-hidden="true">→</b>
+            </a>
+            <a class="admin-tool-card" th:href="@{/admin/categories}">
+                <span aria-hidden="true">⌘</span>
+                <div><strong>Categories</strong><small>Build a category hierarchy and classify courses.</small></div>
+                <b aria-hidden="true">→</b>
+            </a>
+        </div>
+    </section>
+    <p class="admin-footnote">Course archival and account deletion preserve learning history; built-in roles remain protected.</p>
+</main>
+</html>
