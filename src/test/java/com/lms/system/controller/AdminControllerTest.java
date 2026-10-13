@@ -2,15 +2,19 @@ package com.lms.system.controller;
 
 import com.lms.system.model.PasswordHasher;
 import com.lms.system.model.Course;
+import com.lms.system.model.CourseMembership;
+import com.lms.system.model.CourseMembershipId;
+import com.lms.system.model.CourseMembershipStatus;
 import com.lms.system.model.CourseStatus;
 import com.lms.system.model.Role;
 import com.lms.system.model.RoleScope;
 import com.lms.system.model.SystemRoleAssignment;
 import com.lms.system.model.SystemRoleAssignmentId;
 import com.lms.system.model.User;
-import com.lms.system.repository.RoleRepository;
-import com.lms.system.repository.CourseRepository;
 import com.lms.system.repository.CourseCategoryRepository;
+import com.lms.system.repository.CourseMembershipRepository;
+import com.lms.system.repository.CourseRepository;
+import com.lms.system.repository.RoleRepository;
 import com.lms.system.repository.SystemRoleAssignmentRepository;
 import com.lms.system.repository.UserRepository;
 import com.lms.system.security.AuthenticatedUser;
@@ -20,8 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.web.servlet.MockMvc;
 import jakarta.persistence.EntityManager;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -29,8 +34,8 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -61,10 +66,16 @@ class AdminControllerTest {
     private CourseCategoryRepository categoryRepository;
 
     @Autowired
+    private CourseMembershipRepository membershipRepository;
+
+    @Autowired
     private PasswordHasher passwordHasher;
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private AuthenticatedUser authenticatedAdmin;
     private Long adminRoleId;
@@ -74,9 +85,10 @@ class AdminControllerTest {
         String email = "admin-" + UUID.randomUUID() + "@example.com";
         User admin = userRepository.saveAndFlush(User.register(
                 email, "Admin Test User", passwordHasher.hash("StrongPass123")));
-        Role role = roleRepository.findByCode("ADMIN")
-                .filter(found -> found.getScope() == RoleScope.SYSTEM)
-                .orElseThrow();
+        Role role = roleRepository.findByCode("ADMIN").orElseGet(() ->
+                roleRepository.saveAndFlush(Role.catalog("ADMIN", "Administrator", RoleScope.SYSTEM)));
+        roleRepository.findByCode("TEACHER").orElseGet(() ->
+                roleRepository.saveAndFlush(Role.catalog("TEACHER", "Teacher", RoleScope.COURSE)));
         SystemRoleAssignment assignment = SystemRoleAssignment.bind(admin, role);
         admin.attachSystemRole(assignment);
         assignmentRepository.saveAndFlush(assignment);
@@ -109,7 +121,7 @@ class AdminControllerTest {
 
         mockMvc.perform(get("/admin/courses").with(user(authenticatedAdmin)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Course catalog")));
+                .andExpect(content().string(containsString("Course management")));
 
         mockMvc.perform(get("/admin/categories").with(user(authenticatedAdmin)))
                 .andExpect(status().isOk())
@@ -132,6 +144,186 @@ class AdminControllerTest {
     }
 
     @Test
+    void sampleCourseCardsOpenTheirDetailsPage() throws Exception {
+        mockMvc.perform(get("/courses/demo/psychology-in-cinema").with(user(authenticatedAdmin)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Psychology in Cinema")))
+                .andExpect(content().string(containsString("Dr. Olivia Bennett")));
+    }
+
+    @Test
+    void myCoursesAndDashboardShowEnrolledCoursesAndOpenTheirSections() throws Exception {
+        Role studentRole = roleRepository.findByCode("STUDENT").orElseGet(() ->
+                roleRepository.saveAndFlush(Role.catalog("STUDENT", "Student", RoleScope.COURSE)));
+        User student = userRepository.saveAndFlush(User.register(
+                "student-" + UUID.randomUUID() + "@example.com",
+                "Course Flow Student",
+                passwordHasher.hash("StrongPass123")
+        ));
+        Course course = courseRepository.saveAndFlush(Course.create(
+                "FLOW-" + UUID.randomUUID(),
+                "Live database course",
+                "Course flow test description",
+                CourseStatus.PUBLISHED,
+                null,
+                null,
+                null,
+                authenticatedAdmin.getId()
+        ));
+        membershipRepository.saveAndFlush(CourseMembership.bind(
+                student, course.getId(), studentRole, CourseMembershipStatus.ACTIVE));
+        jdbcTemplate.update("""
+                INSERT INTO course_sections (course_id, title, description, position, status)
+                VALUES (?, ?, ?, 1, 'VISIBLE')
+                """, course.getId(), "Introduction", "Start here");
+        Long sectionId = jdbcTemplate.queryForObject(
+                "SELECT id FROM course_sections WHERE course_id = ?", Long.class, course.getId());
+        AuthenticatedUser authenticatedStudent = new AuthenticatedUser(
+                student.getId(),
+                student.getEmail(),
+                student.getFullName(),
+                student.getPasswordHash(),
+                true,
+                List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
+        );
+
+        mockMvc.perform(get("/home").with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Live database course")))
+                .andExpect(content().string(containsString("href=\"/courses/" + course.getId() + "?theme=light\"")));
+        mockMvc.perform(get("/dashboard").with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Live database course")))
+                .andExpect(content().string(containsString("href=\"/courses/" + course.getId() + "?theme=light\"")));
+        mockMvc.perform(get("/courses/{id}", course.getId()).with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Course flow test description")))
+                .andExpect(content().string(containsString("Introduction")))
+                .andExpect(content().string(containsString(
+                        "href=\"/courses/" + course.getId() + "/sections/" + sectionId + "\"")));
+    }
+
+    @Test
+    void teacherCanPublishLessonsAndAnnouncementsAndStudentCanEnrollAndViewThem() throws Exception {
+        Role teacherRole = roleRepository.findByCode("TEACHER").orElseThrow();
+        roleRepository.findByCode("STUDENT").orElseGet(() ->
+                roleRepository.saveAndFlush(Role.catalog("STUDENT", "Student", RoleScope.COURSE)));
+        User teacher = userRepository.saveAndFlush(User.register(
+                "teacher-flow-" + UUID.randomUUID() + "@example.com",
+                "Course Flow Teacher",
+                passwordHasher.hash("StrongPass123")
+        ));
+        User student = userRepository.saveAndFlush(User.register(
+                "student-flow-" + UUID.randomUUID() + "@example.com",
+                "Course Flow Learner",
+                passwordHasher.hash("StrongPass123")
+        ));
+        Course course = courseRepository.saveAndFlush(Course.create(
+                "INTERACTION-" + UUID.randomUUID(),
+                "Interactive course",
+                "A course with real web interactions",
+                CourseStatus.PUBLISHED,
+                null,
+                null,
+                null,
+                authenticatedAdmin.getId()
+        ));
+        membershipRepository.saveAllAndFlush(List.of(CourseMembership.bind(
+                teacher, course.getId(), teacherRole, CourseMembershipStatus.ACTIVE
+        )));
+        AuthenticatedUser authenticatedTeacher = authenticatedUser(teacher, "TEACHER");
+        AuthenticatedUser authenticatedStudent = authenticatedUser(student, "STUDENT");
+        mockMvc.perform(get("/courses/{courseId}", course.getId()).with(user(authenticatedTeacher)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Add section")));
+        mockMvc.perform(post("/courses/{courseId}/sections", course.getId())
+                        .with(user(authenticatedTeacher)).with(csrf())
+                        .param("theme", "light")
+                        .param("title", "Getting started")
+                        .param("description", "First section"))
+                .andExpect(status().is3xxRedirection());
+        Long sectionId = jdbcTemplate.queryForObject(
+                "SELECT id FROM course_sections WHERE course_id = ?", Long.class, course.getId());
+
+        mockMvc.perform(post("/courses/{courseId}/announcements", course.getId())
+                        .with(user(authenticatedTeacher)).with(csrf())
+                        .param("theme", "light")
+                        .param("title", "Welcome")
+                        .param("content", "The course is ready."))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(post("/courses/{courseId}/sections/{sectionId}/lessons", course.getId(), sectionId)
+                        .with(user(authenticatedTeacher)).with(csrf())
+                        .param("theme", "light")
+                        .param("title", "First lesson")
+                        .param("description", "Introduction")
+                        .param("content", "<p>Lesson content</p>"))
+                .andExpect(status().is3xxRedirection());
+        Long lessonId = jdbcTemplate.queryForObject("""
+                SELECT a.id FROM activities a
+                JOIN course_sections cs ON cs.id = a.section_id
+                WHERE cs.course_id = ? AND cs.id = ? AND a.activity_type = 'LESSON'
+                """, Long.class, course.getId(), sectionId);
+
+        mockMvc.perform(get("/courses/catalog").with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Interactive course")));
+        mockMvc.perform(post("/courses/{courseId}/enroll", course.getId())
+                        .with(user(authenticatedStudent)).with(csrf()).param("theme", "light"))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/home").with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Interactive course")));
+        mockMvc.perform(get("/dashboard").with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Interactive course")))
+                .andExpect(content().string(containsString("The course is ready.")))
+                .andExpect(content().string(containsString("Welcome")));
+        mockMvc.perform(get("/courses/{courseId}", course.getId()).with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("The course is ready.")))
+                .andExpect(content().string(containsString("Getting started")));
+        mockMvc.perform(get("/courses/{courseId}/sections/{sectionId}", course.getId(), sectionId)
+                        .with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("First lesson")))
+                .andExpect(content().string(containsString("Lesson content")));
+        mockMvc.perform(post("/courses/{courseId}/sections/{sectionId}/lessons/{lessonId}",
+                        course.getId(), sectionId, lessonId)
+                        .with(user(authenticatedTeacher)).with(csrf())
+                        .param("theme", "light")
+                        .param("title", "Updated lesson")
+                        .param("description", "Updated description")
+                        .param("content", "<p>Updated lesson content</p>"))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/courses/{courseId}/sections/{sectionId}", course.getId(), sectionId)
+                        .with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Updated lesson")))
+                .andExpect(content().string(containsString("Updated lesson content")));
+        mockMvc.perform(post("/courses/{courseId}/sections/{sectionId}/lessons/{lessonId}/delete",
+                        course.getId(), sectionId, lessonId)
+                        .with(user(authenticatedTeacher)).with(csrf()).param("theme", "light"))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/courses/{courseId}/sections/{sectionId}", course.getId(), sectionId)
+                        .with(user(authenticatedStudent)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Chương này chưa có bài học.")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(containsString("Updated lesson content"))));
+    }
+
+    private AuthenticatedUser authenticatedUser(User user, String role) {
+        return new AuthenticatedUser(
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getPasswordHash(),
+                true,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+        );
+    }
+
+    @Test
     void accountAndCourseDetailsRenderFromPersistentEntities() throws Exception {
         mockMvc.perform(get("/admin/users/{id}", authenticatedAdmin.getId()).with(user(authenticatedAdmin)))
                 .andExpect(status().isOk())
@@ -151,6 +343,54 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Admin managed OOP course")))
                 .andExpect(content().string(containsString("Course detail smoke test")));
+    }
+
+    @Test
+    void courseSearchMatchesInstructorName() throws Exception {
+        String instructorName = "Instructor " + UUID.randomUUID();
+        User instructor = userRepository.saveAndFlush(User.register(
+                "teacher-" + UUID.randomUUID() + "@example.com",
+                instructorName,
+                passwordHasher.hash("StrongPass123")
+        ));
+        String courseCode = "TEACHER-" + UUID.randomUUID();
+        mockMvc.perform(post("/admin/courses")
+                        .with(user(authenticatedAdmin))
+                        .with(csrf())
+                        .param("courseCode", courseCode)
+                        .param("title", "Course taught by instructor")
+                        .param("status", "PUBLISHED")
+                        .param("instructorIds", instructor.getId().toString()))
+                .andExpect(status().is3xxRedirection());
+        Course course = courseRepository.findAll().stream()
+                .filter(found -> found.getCourseCode().equals(courseCode))
+                .findFirst()
+                .orElseThrow();
+        CourseMembershipId membershipId = new CourseMembershipId(course.getId(), instructor.getId());
+        assertEquals(CourseMembershipStatus.ACTIVE,
+                membershipRepository.findById(membershipId).orElseThrow().getStatus());
+
+        mockMvc.perform(get("/admin/courses")
+                        .with(user(authenticatedAdmin))
+                        .param("q", instructorName))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(instructorName)))
+                .andExpect(content().string(containsString("Course taught by instructor")));
+
+        mockMvc.perform(post("/admin/courses/{id}", course.getId())
+                        .with(user(authenticatedAdmin))
+                        .with(csrf())
+                        .param("courseCode", courseCode)
+                        .param("title", "Course taught by instructor")
+                        .param("status", "PUBLISHED"))
+                .andExpect(status().is3xxRedirection());
+        assertEquals(CourseMembershipStatus.WITHDRAWN,
+                membershipRepository.findById(membershipId).orElseThrow().getStatus());
+        mockMvc.perform(get("/admin/courses")
+                        .with(user(authenticatedAdmin))
+                        .param("q", instructorName))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No courses found")));
     }
 
     @Test

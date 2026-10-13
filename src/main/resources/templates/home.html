@@ -10,10 +10,13 @@
         <p class="page-kicker">YOUR LEARNING SPACE</p>
         <h1>My courses</h1>
       </div>
+      <a class="btn" th:href="@{/courses/catalog(theme=${theme})}">Browse courses</a>
       <p class="welcome-user">
         Welcome, <strong th:text="${user.fullName}">Learner</strong>
       </p>
     </div>
+    <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
 
     <section
       th:replace="~{fragments/course-overview :: overview(

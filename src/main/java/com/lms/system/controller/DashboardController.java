@@ -2,6 +2,7 @@ package com.lms.system.controller;
 
 import com.lms.system.model.User;
 import com.lms.system.security.AuthenticatedUser;
+import com.lms.system.repository.LmsWorkflowRepository;
 import com.lms.system.service.CourseCatalogService;
 import com.lms.system.service.DashboardService;
 import com.lms.system.service.ProfileService;
@@ -23,15 +24,18 @@ public class DashboardController {
     private final ProfileService profileService;
     private final CourseCatalogService courseCatalogService;
     private final DashboardService dashboardService;
+    private final LmsWorkflowRepository workflowRepository;
 
     public DashboardController(
             ProfileService profileService,
             CourseCatalogService courseCatalogService,
-            DashboardService dashboardService
+            DashboardService dashboardService,
+            LmsWorkflowRepository workflowRepository
     ) {
         this.profileService = profileService;
         this.courseCatalogService = courseCatalogService;
         this.dashboardService = dashboardService;
+        this.workflowRepository = workflowRepository;
     }
 
     @GetMapping("/dashboard")
@@ -75,7 +79,7 @@ public class DashboardController {
         User user = profileService.getProfile(currentUser.getId());
         String query = q.trim();
         String normalizedTimelineQuery = timelineQuery.trim();
-        var courses = courseCatalogService.search(status, query, sort);
+        var courses = courseCatalogService.searchForUser(currentUser.getId(), status, query, sort);
 
         model.addAttribute("user", user);
         model.addAttribute("todayLabel", dashboardService.todayLabel());
@@ -95,6 +99,7 @@ public class DashboardController {
         model.addAttribute("timelineQuery", normalizedTimelineQuery);
         model.addAttribute("activities",
                 dashboardService.timeline(timelineFilter, normalizedTimelineQuery, timelineSort));
+        model.addAttribute("announcements", workflowRepository.findLatestAnnouncementsForUser(currentUser.getId()));
         model.addAttribute("weekdays", dashboardService.weekdays());
         model.addAttribute("calendarCells", dashboardService.calendar(selectedMonth, selectedDay));
         model.addAttribute("calendarMonth", selectedMonth.toString());

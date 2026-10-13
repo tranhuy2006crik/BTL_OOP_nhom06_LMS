@@ -9,6 +9,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.lms.system.dto.LessonRequest;
 import com.lms.system.dto.LessonResponse;
+import com.lms.system.dto.CourseSectionRequest;
+import com.lms.system.dto.CourseSectionSummary;
 import com.lms.system.repository.LmsWorkflowRepository;
 
 @Service
@@ -30,6 +32,15 @@ public class LessonService {
         }
         repository.requireSectionInCourse(sectionId, courseId);
         return repository.findLessons(courseId, sectionId, canManage);
+    }
+
+    @Transactional
+    public CourseSectionSummary createSection(Long courseId, CourseSectionRequest request, String email) {
+        Long userId = repository.requireActiveUserId(email);
+        if (!repository.canManageCourse(userId, courseId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Chỉ giảng viên của khóa học mới được tạo chương");
+        }
+        return repository.createCourseSection(courseId, request.title(), request.description());
     }
 
     // Ghi activity và phần nội dung lesson trong cùng transaction để không tạo dữ liệu thiếu một nửa.

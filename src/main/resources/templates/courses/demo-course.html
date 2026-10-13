@@ -1,0 +1,23 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<title th:text="${course.title} + ' - PTIT Learn'">Course details - PTIT Learn</title>
+<main class="page course-page">
+    <a class="admin-back-link" th:href="@{/home(theme=${theme})}">← Back to courses</a>
+    <section class="admin-panel">
+        <p class="page-kicker">SAMPLE COURSE</p>
+        <h1 th:text="${course.title}">Course title</h1>
+        <p class="course-category" th:text="${course.category}">Course category</p>
+        <div class="admin-detail-row">
+            <span>Instructor</span>
+            <strong th:text="${course.instructor}">Course instructor</strong>
+        </div>
+        <div class="admin-description">
+            <h2>About this course</h2>
+            <p th:text="${course.description}">Course description</p>
+        </div>
+        <div class="alert alert-ok" role="status">
+            This sample course is for browsing the interface. To manage real course records, use Administration.
+        </div>
+    </section>
+</main>
+</html>

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.lms.system.dto.AnnouncementResponse;
+import com.lms.system.dto.CourseSectionSummary;
+import com.lms.system.dto.DashboardAnnouncement;
 import com.lms.system.dto.EnrollmentResponse;
 import com.lms.system.dto.LessonResponse;
 
@@ -70,6 +72,72 @@ public class LmsWorkflowRepository {
                 )
                 """, Boolean.class, userId, courseId);
         return Boolean.TRUE.equals(enrolled);
+    }
+
+    public List<CourseSectionSummary> findCourseSections(Long courseId, boolean canManage) {
+        String visibilityFilter = canManage ? "" : " AND status = 'VISIBLE'";
+        return jdbcTemplate.query("""
+                SELECT id, title, description, position, status
+                FROM course_sections
+                WHERE course_id = ?
+                """ + visibilityFilter + " ORDER BY position, id",
+                (resultSet, rowNumber) -> new CourseSectionSummary(
+                        resultSet.getLong("id"),
+                        resultSet.getString("title"),
+                        resultSet.getString("description"),
+                        resultSet.getInt("position"),
+                        resultSet.getString("status")
+                ),
+                courseId
+        );
+    }
+
+    public CourseSectionSummary createCourseSection(Long courseId, String title, String description) {
+        Integer position = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(MAX(position), 0) + 1 FROM course_sections WHERE course_id = ?",
+                Integer.class,
+                courseId
+        );
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement("""
+                    INSERT INTO course_sections (course_id, title, description, position, status)
+                    VALUES (?, ?, ?, ?, 'VISIBLE')
+                    """, Statement.RETURN_GENERATED_KEYS);
+            statement.setLong(1, courseId);
+            statement.setString(2, title.trim());
+            statement.setString(3, description);
+            statement.setInt(4, position == null ? 1 : position);
+            return statement;
+        }, keyHolder);
+        Long sectionId = requireGeneratedId(keyHolder);
+        return new CourseSectionSummary(
+                sectionId, title.trim(), description, position == null ? 1 : position, "VISIBLE");
+    }
+
+    public List<DashboardAnnouncement> findLatestAnnouncementsForUser(Long userId) {
+        return jdbcTemplate.query("""
+                SELECT DISTINCT ca.id, ca.course_id, c.title AS course_title, ca.title, ca.content,
+                       ca.published_at
+                FROM course_announcements ca
+                JOIN courses c ON c.id = ca.course_id AND c.status = 'PUBLISHED'
+                WHERE ca.status = 'PUBLISHED'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM course_memberships cm
+                      JOIN roles r ON r.id = cm.role_id AND r.scope = cm.role_scope
+                      WHERE cm.course_id = ca.course_id AND cm.user_id = ?
+                        AND cm.status = 'ACTIVE' AND r.code IN ('STUDENT', 'TEACHER')
+                  )
+                ORDER BY ca.published_at DESC, ca.id DESC
+                LIMIT 5
+                """, (resultSet, rowNumber) -> new DashboardAnnouncement(
+                resultSet.getLong("course_id"),
+                resultSet.getString("course_title"),
+                resultSet.getString("title"),
+                resultSet.getString("content"),
+                toLocalDateTime(resultSet.getTimestamp("published_at"))
+        ), userId);
     }
 
     // Chỉ khóa học đã công bố mới nhận ghi danh.

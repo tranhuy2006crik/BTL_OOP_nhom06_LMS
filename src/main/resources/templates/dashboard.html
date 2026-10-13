@@ -16,6 +16,7 @@
                     <p>Here’s what’s happening in your learning space. Keep the momentum going!</p>
                     <div class="welcome-actions">
                         <a class="welcome-primary-link" href="#course-overview">Explore my courses <span aria-hidden="true">→</span></a>
+                        <a class="welcome-secondary-link" th:href="@{/courses/catalog(theme=${theme})}">Browse courses</a>
                         <a class="welcome-secondary-link" th:href="@{/profile}">View profile</a>
                     </div>
                 </div>
@@ -148,11 +149,16 @@
                     <h2 id="announcements-heading">Latest announcements</h2>
                     <span class="announcement-icon" aria-hidden="true">✳</span>
                 </div>
-                <article class="announcement">
-                    <p class="announcement-meta">2 October 2026, 8:12 AM</p>
-                    <p class="announcement-author">Anna Alexander</p>
-                    <a href="#announcements-heading">Mount Orange is now running Moodle LMS 5.3!</a>
-                    <a class="older-topics" href="#announcements-heading">Older topics ...</a>
+                <div class="empty-state" th:if="${#lists.isEmpty(announcements)}">
+                    No announcements from your courses yet.
+                </div>
+                <article class="announcement" th:each="announcement : ${announcements}">
+                    <p class="announcement-meta"
+                       th:text="${#temporals.format(announcement.publishedAt, 'dd MMM yyyy, HH:mm')}">Published date</p>
+                    <p class="announcement-author" th:text="${announcement.courseTitle}">Course</p>
+                    <a th:href="@{/courses/{id}(id=${announcement.courseId},theme=${theme})}"
+                       th:text="${announcement.title}">Announcement title</a>
+                    <p th:text="${announcement.content}">Announcement content</p>
                 </article>
             </section>
 

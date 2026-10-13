@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdminCourseForm {
 
@@ -32,6 +34,8 @@ public class AdminCourseForm {
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime endAt;
+
+    private List<Long> instructorIds = new ArrayList<>();
 
     public AdminCourseForm() {
     }
@@ -100,5 +104,13 @@ public class AdminCourseForm {
 
     public void setEndAt(LocalDateTime endAt) {
         this.endAt = endAt;
+    }
+
+    public List<Long> getInstructorIds() {
+        return instructorIds;
+    }
+
+    public void setInstructorIds(List<Long> instructorIds) {
+        this.instructorIds = instructorIds == null ? new ArrayList<>() : instructorIds;
     }
 }

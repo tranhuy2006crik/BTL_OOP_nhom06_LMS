@@ -251,8 +251,10 @@ public class AdminController {
         String query = q.trim();
         User user = adminUserService.get(currentUser.getId());
         addBaseModel(model, user, "/admin/courses", theme);
-        model.addAttribute("courses", adminCourseService.searchCourses(
-                query, selectedStatus, PageRequest.of(Math.max(0, page), PAGE_SIZE)));
+        var courses = adminCourseService.searchCourses(
+                query, selectedStatus, PageRequest.of(Math.max(0, page), PAGE_SIZE));
+        model.addAttribute("courses", courses);
+        model.addAttribute("courseInstructors", adminCourseService.instructorNamesByCourse(courses.getContent()));
         model.addAttribute("query", query);
         model.addAttribute("status", status);
         return "admin/courses/list";
@@ -270,6 +272,7 @@ public class AdminController {
         }
         addBaseModel(model, adminUserService.get(currentUser.getId()), "/admin/courses/new", theme);
         addCourseFormOptions(model);
+        model.addAttribute("instructors", adminCourseService.availableInstructors());
         model.addAttribute("editing", false);
         return "admin/courses/form";
     }
@@ -295,6 +298,7 @@ public class AdminController {
         }
         addBaseModel(model, adminUserService.get(currentUser.getId()), "/admin/courses/new", theme);
         addCourseFormOptions(model);
+        model.addAttribute("instructors", adminCourseService.availableInstructors());
         model.addAttribute("editing", false);
         return "admin/courses/form";
     }
@@ -322,10 +326,13 @@ public class AdminController {
         requireTheme(theme);
         var course = adminCourseService.getCourse(id);
         if (!model.containsAttribute("courseForm")) {
-            model.addAttribute("courseForm", new AdminCourseForm(course));
+            AdminCourseForm form = new AdminCourseForm(course);
+            form.setInstructorIds(adminCourseService.instructorIdsForCourse(id));
+            model.addAttribute("courseForm", form);
         }
         addBaseModel(model, adminUserService.get(currentUser.getId()), "/admin/courses/" + id + "/edit", theme);
         addCourseFormOptions(model);
+        model.addAttribute("instructors", adminCourseService.availableInstructors());
         model.addAttribute("editing", true);
         model.addAttribute("course", course);
         return "admin/courses/form";
@@ -353,6 +360,7 @@ public class AdminController {
         }
         addBaseModel(model, adminUserService.get(currentUser.getId()), "/admin/courses/" + id + "/edit", theme);
         addCourseFormOptions(model);
+        model.addAttribute("instructors", adminCourseService.availableInstructors());
         model.addAttribute("editing", true);
         model.addAttribute("course", adminCourseService.getCourse(id));
         return "admin/courses/form";
@@ -361,8 +369,8 @@ public class AdminController {
     @PostMapping("/courses/{id}/archive")
     public String archiveCourse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         adminCourseService.archiveCourse(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Course archived.");
-        return "redirect:/admin/courses/" + id;
+        redirectAttributes.addFlashAttribute("successMessage", "Course archived. Learning data has been retained.");
+        return "redirect:/admin/courses";
     }
 
     @GetMapping("/categories")

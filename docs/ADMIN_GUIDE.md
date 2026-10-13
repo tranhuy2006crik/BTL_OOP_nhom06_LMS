@@ -41,3 +41,16 @@ directly through JPA entities and repositories.
 The last active administrator cannot be suspended, deleted, or demoted, and an
 administrator cannot remove their own administrator access or disable their
 own account.
+
+## Course participation
+
+Administrators publish a course and assign active instructors from its course
+form. Assigned instructors can open the course from **My courses** or
+**Dashboard**, create sections, add/edit lessons in those sections, hide
+lessons from students, and publish course announcements. Hiding a lesson
+retains its record.
+
+Students use **Browse courses** to find published courses and enroll. Enrolled
+students then see the course in **My courses** and **Dashboard**, where they
+can open visible sections, lessons, and published announcements. A student
+cannot access a course's private content before enrollment.

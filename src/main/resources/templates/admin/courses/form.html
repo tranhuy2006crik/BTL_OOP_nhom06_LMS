@@ -18,6 +18,13 @@
                     <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Category</option>
                 </select>
             </label>
+            <label>Instructors
+                <select th:field="*{instructorIds}" multiple size="5" aria-describedby="instructor-help">
+                    <option th:each="instructor : ${instructors}" th:value="${instructor.id}"
+                            th:text="|${instructor.fullName} (${instructor.email})|">Instructor</option>
+                </select>
+                <small id="instructor-help">Select one or more active users to assign as course instructors. Use Ctrl/Command to select multiple instructors.</small>
+            </label>
             <label>Status
                 <select th:field="*{status}">
                     <option th:each="courseStatus : ${courseStatuses}" th:value="${courseStatus}" th:text="${courseStatus}">DRAFT</option>

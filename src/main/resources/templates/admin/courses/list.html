@@ -5,18 +5,20 @@
     <div class="admin-heading">
         <div>
             <p class="page-kicker">ADMINISTRATION / COURSES</p>
-            <h1>Course catalog</h1>
-            <p class="admin-subtitle">Create, edit, publish, and archive courses.</p>
+            <h1>Course management</h1>
+            <p class="admin-subtitle">Create, update, find, and safely archive courses.</p>
         </div>
-        <a class="btn admin-primary-action" th:href="@{/admin/courses/new}">＋ Create course</a>
+        <a class="btn admin-primary-action" th:href="@{/admin/courses/new}"><span aria-hidden="true">＋</span> Create course</a>
     </div>
     <div class="alert alert-ok" th:if="${successMessage}" th:text="${successMessage}" role="status"></div>
+    <div class="alert alert-error" th:if="${errorMessage}" th:text="${errorMessage}" role="alert"></div>
     <section class="admin-panel">
         <form class="admin-filter-form" th:action="@{/admin/courses}" method="get">
-            <label class="admin-search-label">Search
-                <input type="search" name="q" th:value="${query}" placeholder="Course title or code">
+            <label class="admin-search-label">Search courses
+                <input type="search" name="q" th:value="${query}" placeholder="Course name, code, or instructor"
+                       aria-label="Search by course name, course code, or instructor">
             </label>
-            <label class="admin-select-label">Status
+            <label class="admin-select-label">Course status
                 <select name="status">
                     <option value="all" th:selected="${status == 'all'}">All statuses</option>
                     <option value="draft" th:selected="${status == 'draft'}">Draft</option>
@@ -25,20 +27,54 @@
                 </select>
             </label>
             <input type="hidden" name="theme" th:value="${theme}">
-            <button class="btn" type="submit">Search</button>
+            <button class="btn" type="submit">Apply filters</button>
+            <a class="admin-filter-reset" th:if="${!#strings.isEmpty(query) or status != 'all'}"
+               th:href="@{/admin/courses(theme=${theme})}">Clear filters</a>
         </form>
+        <div class="admin-course-list-heading">
+            <div>
+                <h2>Courses</h2>
+                <p th:text="|${courses.totalElements} courses · Page ${courses.number + 1} of ${courses.totalPages == 0 ? 1 : courses.totalPages}|">
+                    Course results
+                </p>
+            </div>
+            <span class="admin-course-count" th:text="${courses.totalElements}">0</span>
+        </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
-                <thead><tr><th>Course</th><th>Category</th><th>Status</th><th>Dates</th><th>Manage</th></tr></thead>
+                <thead><tr><th>Course</th><th>Instructor</th><th>Category</th><th>Status</th><th>Schedule</th><th>Actions</th></tr></thead>
                 <tbody>
                 <tr th:each="course : ${courses.content}">
-                    <td><strong th:text="${course.title}">Course title</strong><small th:text="${course.courseCode}">CODE</small></td>
+                    <td>
+                        <a class="admin-course-title" th:href="@{/admin/courses/{id}(id=${course.id})}" th:text="${course.title}">Course title</a>
+                        <small th:text="${course.courseCode}">CODE</small>
+                    </td>
+                    <td class="admin-course-instructor"
+                        th:text="${courseInstructors[course.id] == null ? 'No instructor assigned' : courseInstructors[course.id]}">Instructor</td>
                     <td th:text="${course.category == null ? 'Uncategorized' : course.category.name}">Category</td>
                     <td><span class="status-pill" th:classappend="' status-' + ${#strings.toLowerCase(course.status)}" th:text="${course.status}">DRAFT</span></td>
-                    <td><small th:text="${course.startAt == null ? 'No start date' : #temporals.format(course.startAt, 'dd MMM yyyy')}">Date</small></td>
-                    <td><a class="admin-inline-link" th:href="@{/admin/courses/{id}(id=${course.id})}">View course →</a></td>
+                    <td>
+                        <small th:text="${course.startAt == null ? 'Start date not set' : #temporals.format(course.startAt, 'dd MMM yyyy')}">Start date</small>
+                        <small th:if="${course.endAt != null}" th:text="|Ends ${#temporals.format(course.endAt, 'dd MMM yyyy')}|">End date</small>
+                    </td>
+                    <td class="admin-course-actions">
+                        <a class="admin-inline-link" th:href="@{/admin/courses/{id}(id=${course.id})}">View</a>
+                        <a class="admin-inline-link" th:href="@{/admin/courses/{id}/edit(id=${course.id})}">Edit</a>
+                        <form th:if="${course.status != T(com.lms.system.model.CourseStatus).ARCHIVED}"
+                              th:action="@{/admin/courses/{id}/archive(id=${course.id})}" method="post"
+                              onsubmit="return confirm('Archive this course? Its enrolments, grades, and course content will be retained.');">
+                            <input type="hidden" name="theme" th:value="${theme}">
+                            <button class="admin-text-danger" type="submit">Archive</button>
+                        </form>
+                        <span class="admin-muted" th:if="${course.status == T(com.lms.system.model.CourseStatus).ARCHIVED}">Archived</span>
+                    </td>
                 </tr>
-                <tr th:if="${courses.empty}"><td class="admin-empty-cell" colspan="5">No courses match your search.</td></tr>
+                <tr th:if="${courses.empty}">
+                    <td class="admin-empty-cell" colspan="6">
+                        <strong>No courses found</strong>
+                        <span>Try another course name or instructor, or clear the filters.</span>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -47,6 +83,7 @@
             <span th:text="|Page ${courses.number + 1} of ${courses.totalPages}|">Page 1</span>
             <a th:if="${courses.hasNext()}" th:href="@{/admin/courses(q=${query},status=${status},page=${courses.number + 1},theme=${theme})}">Next →</a>
         </nav>
+        <p class="admin-course-archive-note">Archiving hides a course from active learning while preserving enrolments, grades, and course content.</p>
     </section>
 </main>
 </html>

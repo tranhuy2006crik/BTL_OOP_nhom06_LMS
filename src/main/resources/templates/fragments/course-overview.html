@@ -3,9 +3,9 @@
     <div class="overview-heading">
         <div>
             <h2 id="overview-heading">Course overview</h2>
-            <p>Pick up where you left off and keep your learning moving.</p>
+            <p>Open one of your enrolled or assigned courses to continue.</p>
         </div>
-        <span class="demo-label"><span aria-hidden="true">✦</span> Demo courses</span>
+        <span class="demo-label"><span aria-hidden="true">✦</span> Your courses</span>
     </div>
 
     <form class="course-toolbar" aria-label="Course controls" th:action="@{${pagePath}}" method="get">
@@ -54,7 +54,7 @@
     <div class="course-grid" th:classappend="${view == 'list'} ? ' list-view'">
         <article class="course-card" th:each="course : ${courses}">
             <a class="course-artwork" th:classappend="' artwork-' + ${course.artwork}"
-               th:href="${pagePath + '#course-overview'}" tabindex="-1" aria-hidden="true">
+               th:href="@{/courses/{id}(id=${course.courseId},theme=${theme})}" tabindex="-1" aria-hidden="true">
                 <span class="artwork-sun"></span>
                 <span class="artwork-symbol" th:text="${course.symbol}">✦</span>
                 <span class="artwork-spark artwork-spark-one" aria-hidden="true">✦</span>
@@ -64,17 +64,21 @@
                 <div class="course-copy">
                     <div class="course-title-row">
                         <span class="favorite-star" th:if="${course.starred}" aria-label="Starred course">★</span>
-                        <h3><a class="course-title" th:href="${pagePath + '#course-overview'}" th:text="${course.title}">Course title</a></h3>
+                        <h3><a class="course-title" th:href="@{/courses/{id}(id=${course.courseId},theme=${theme})}" th:text="${course.title}">Course title</a></h3>
                     </div>
-                    <p class="course-category" th:text="${course.category}">Course category</p>
+                    <p class="course-category">
+                        <span th:text="${course.category}">Course category</span>
+                        <span th:text="| · ${course.courseCode}|"> · CODE</span>
+                    </p>
                 </div>
                 <div class="course-progress">
-                    <span class="progress-label" th:attr="aria-label=${course.completion} + '% complete'">
-                        <strong th:text="${course.completion}">0</strong>% complete
+                    <span class="progress-label">
+                        <span th:text="${course.instructor}">Course instructor</span>
+                        <span th:if="${course.trackProgress}" th:text="| · ${course.completion}% complete|"> · 0% complete</span>
                     </span>
                     <a class="course-more"
-                       th:href="@{${pagePath}(notice='course-options', status=${status}, q=${query}, sort=${sort}, view=${view}, theme=${theme})}"
-                       aria-label="More course options" title="More course options">⋮</a>
+                       th:href="@{/courses/{id}(id=${course.courseId},theme=${theme})}"
+                       aria-label="View course details" title="View course details">→</a>
                 </div>
             </div>
         </article>
@@ -82,12 +86,12 @@
     <div class="no-courses" th:if="${#lists.isEmpty(courses)}">
         <span aria-hidden="true">✦</span>
         <h3>No courses found</h3>
-        <p>Try another search or choose a different course status.</p>
+        <p>Courses appear here after you enroll or an administrator assigns you as an instructor. You can also try another search or status.</p>
     </div>
     <p class="course-grid-count"
        th:text="${courseCount} + (${courseCount == 1} ? ' course' : ' courses')">0 courses</p>
     <p class="sample-data-note">
         <span aria-hidden="true">ⓘ</span>
-        These course cards are sample content for the interface preview and are not connected to enrollments yet.
+        This list shows live courses assigned to your account and courses in which you are enrolled.
     </p>
 </section>
