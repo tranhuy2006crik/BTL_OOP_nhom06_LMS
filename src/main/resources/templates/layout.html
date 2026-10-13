@@ -20,15 +20,11 @@
         <a
           th:classappend="${dashboardEnabled} ? ' nav-current' : ''"
           th:attr="aria-current=${dashboardEnabled} ? 'page' : null"
-          th:href="@{/dashboard}"
-          >Dashboard</a
-        >
+          th:href="@{/dashboard}">Dashboard</a>
         <a
           th:classappend="${courseOverviewEnabled} ? ' nav-current' : ''"
           th:attr="aria-current=${courseOverviewEnabled} ? 'page' : null"
-          th:href="@{/home#course-overview}"
-          >My courses</a
-        >
+          th:href="@{/home#course-overview}">My courses</a>
         <a
           sec:authorize="hasRole('ADMIN')"
           th:classappend="${adminPageEnabled} ? ' nav-current' : ''"

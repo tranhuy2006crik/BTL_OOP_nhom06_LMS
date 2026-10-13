@@ -391,10 +391,10 @@ INSERT INTO roles (code, name, scope)
 VALUES
     ('ADMIN', 'Administrator', 'SYSTEM'),
     ('TEACHER', 'Teacher', 'COURSE'),
-    ('STUDENT', 'Student', 'COURSE') AS new_role
+    ('STUDENT', 'Student', 'COURSE')
 ON DUPLICATE KEY UPDATE
-    name = new_role.name,
-    scope = new_role.scope;
+    name = VALUES(name),
+    scope = VALUES(scope);
 
 -- Post-install verification: expect 21 tables and the three role/scope pairs.
 SELECT COUNT(*) AS lms_table_count
